@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8" />
+    <title>Typora WYSIWYG</title>
+    <style>
+        :root {
+            --body-bg: #f5f6f8;
+            --page-bg: #ffffff;
+            --text-color: #2c2c34;
+            --muted-color: #7b7f91;
+            --accent-color: #d64545;
+            --border-color: #e3e6ef;
+            --inline-code-bg: #f5f6fa;
+            --inline-code-color: #c43c67;
+            --code-block-bg: #11131a;
+            --code-block-color: #e9edf5;
+            --blockquote-bg: rgba(214, 69, 69, 0.06);
+            --blockquote-border: #d64545;
+            --blockquote-color: #5c5f6f;
+            --selection-bg: rgba(214, 69, 69, 0.22);
+            --table-head-bg: #f4f5f9;
+            --table-head-color: #4a4e64;
+            --link-underline: rgba(214, 69, 69, 0.4);
+        }
+        body.plain-mode {
+            background: #eceff4;
+        }
+        body.plain-mode #editorWrapper {
+            background: #eceff4;
+        }
+        body.plain-mode #editor {
+            font-family: "JetBrains Mono", "Fira Code", "Menlo", monospace;
+            font-size: 15px;
+            padding: 40px 72px;
+            max-width: 1100px;
+            margin: 0 auto;
+            border-radius: 20px;
+            background: #ffffff;
+            box-shadow: 0 24px 60px rgba(15, 23, 42, 0.12);
+            color: #1f2433;
+            line-height: 1.55;
+            letter-spacing: 0;
+        }
+        body.plain-mode #editor h1,
+        body.plain-mode #editor h2,
+        body.plain-mode #editor h3,
+        body.plain-mode #editor h4,
+        body.plain-mode #editor h5,
+        body.plain-mode #editor h6,
+        body.plain-mode #editor p {
+            font-family: inherit;
+            margin: 10px 0;
+            font-weight: 400;
+            color: inherit;
+            letter-spacing: 0;
+        }
+        body.plain-mode #editor ul,
+        body.plain-mode #editor ol {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        body.plain-mode #editor blockquote {
+            background: #f4f5f9;
+            border-left-color: #d0d3dc;
+            color: #4c5465;
+        }
+        body.plain-mode #editor code {
+            background: #f0f2f7;
+            color: #c43c67;
+        }
+        body.plain-mode #editor pre {
+            background: #1d1f2b;
+            color: #e3e8fb;
+            box-shadow: none;
+        }
+        body.plain-mode #editor table {
+            background: #fdfdff;
+        }
+        body.plain-mode ::selection {
+            background: rgba(79, 140, 255, 0.25);
+        }
+        html, body {
+            margin: 0;
+            padding: 0;
+            min-height: 100%;
+            width: 100%;
+            background: var(--body-bg);
+            color: var(--text-color);
+            font-family: "SF Pro Display", "PingFang SC", "Segoe UI", "Helvetica Neue", "Microsoft Yahei", sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+        body {
+            height: 100vh;
+        }
+        #editorWrapper {
+            width: 100%;
+            height: 100%;
+            overflow-y: auto;
+            background: var(--page-bg);
+        }
+        #editor {
+            width: 100%;
+            min-height: 100%;
+            background: var(--page-bg);
+            padding: 48px 96px;
+            box-sizing: border-box;
+            line-height: 1.72;
+            font-size: 17px;
+            letter-spacing: 0.01em;
+            outline: none;
+        }
+        @media (max-width: 1024px) {
+            #editor {
+                padding: 36px 24px;
+            }
+        }
+        #editor h1 { font-size: 38px; margin: 32px 0 16px; font-weight: 600; }
+        #editor h2 { font-size: 30px; margin: 28px 0 14px; font-weight: 600; }
+        #editor h3 { font-size: 24px; margin: 24px 0 12px; font-weight: 600; }
+        #editor h4 { font-size: 20px; margin: 22px 0 12px; font-weight: 600; }
+        #editor h5 { font-size: 18px; margin: 20px 0 10px; font-weight: 600; }
+        #editor h6 {
+            font-size: 16px;
+            margin: 18px 0 8px;
+            font-weight: 600;
+            color: var(--muted-color);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+        #editor p {
+            margin: 16px 0;
+            font-size: 17px;
+            color: var(--text-color);
+        }
+        #editor strong { font-weight: 600; }
+        #editor em { font-style: italic; }
+        #editor ul, #editor ol {
+            margin: 16px 0;
+            padding-left: 28px;
+        }
+        #editor li {
+            margin: 6px 0;
+        }
+        #editor li::marker {
+            color: var(--accent-color);
+        }
+        #editor blockquote {
+            margin: 24px 0;
+            padding: 16px 22px;
+            border-left: 4px solid var(--blockquote-border);
+            background: var(--blockquote-bg);
+            color: var(--blockquote-color);
+            border-radius: 0 12px 12px 0;
+        }
+        #editor code {
+            background: var(--inline-code-bg);
+            border-radius: 6px;
+            padding: 2px 6px;
+            font-family: "JetBrains Mono", "Fira Code", monospace;
+            font-size: 0.95em;
+            color: var(--inline-code-color);
+        }
+        #editor pre {
+            position: relative;
+            margin: 24px 0;
+            padding: 42px 20px 20px;
+            border-radius: 18px;
+            overflow: auto;
+            background: var(--code-block-bg);
+            color: var(--code-block-color);
+            font-family: "JetBrains Mono", "Fira Code", monospace;
+            font-size: 15px;
+            line-height: 1.6;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+        }
+        #editor pre::before {
+            content: attr(data-lang);
+            position: absolute;
+            top: 10px;
+            right: 16px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--muted-color);
+        }
+        #editor pre:not([data-lang])::before,
+        #editor pre[data-lang=""]::before {
+            content: "code";
+        }
+        #editor pre code {
+            display: block;
+            background: transparent;
+            padding: 0;
+            color: inherit;
+            white-space: pre;
+        }
+        #editor hr {
+            border: none;
+            border-top: 1px dashed var(--border-color);
+            margin: 32px 0;
+        }
+        #editor a {
+            color: var(--accent-color);
+            text-decoration: none;
+            border-bottom: 1px solid var(--link-underline);
+        }
+        #editor a:hover {
+            border-bottom-color: var(--accent-color);
+        }
+        #editor table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 28px 0;
+            font-size: 0.95em;
+            background: var(--page-bg);
+        }
+        #editor table.ty-table {
+            box-shadow: inset 0 0 0 1px var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        #editor table th,
+        #editor table td {
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+        }
+        #editor table thead th {
+            background: var(--table-head-bg);
+            font-weight: 600;
+            color: var(--table-head-color);
+        }
+        #editor table td[data-align="center"],
+        #editor table th[data-align="center"] {
+            text-align: center;
+        }
+        #editor table td[data-align="right"],
+        #editor table th[data-align="right"] {
+            text-align: right;
+        }
+        #editor img {
+            max-width: 100%;
+            border-radius: 12px;
+            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
+            margin: 24px 0;
+        }
+        #editor:empty::before {
+            content: "开始输入 Markdown 内容…";
+            color: var(--muted-color);
+        }
+        ::selection {
+            background: var(--selection-bg);
+        }
+    </style>
+    <script src="qrc:///qtwebchannel/qwebchannel.js"></script>
+</head>
+<body>
+    <div id="editorWrapper">
+        <div id="editor" contenteditable="true"></div>
+    </div>
+    <script>
+        const editor = document.getElementById("editor");
+        let suppressChange = false;
+        let currentMarkdown = "";
+        let qtBridge = null;
+        let plainMode = false;
+
+        function applyThemePalette(palette) {
+            if (!palette || typeof palette !== "object") return;
+            const root = document.documentElement;
+            const toCssVar = key => "--" + key.replace(/([A-Z])/g, "-$1").toLowerCase();
+            Object.keys(palette).forEach(key => {
+                const value = palette[key];
+                if (typeof value === "string" && value.length) {
+                    root.style.setProperty(toCssVar(key), value);
+                }
+            });
+        }
+
+        function setPlainMode(flag) {
+            plainMode = !!flag;
+            document.body.classList.toggle("plain-mode", plainMode);
+        }
+
+        setPlainMode(false);
+
+        function escapeHtml(text) {
+            return (text || "")
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#39;");
+        }
+
+        function normalizeLanguageName(raw) {
+            const trimmed = (raw || "").trim();
+            if (!trimmed.length) return "";
+            return trimmed.toLowerCase().replace(/[^a-z0-9\-\+\#]/g, "-");
+        }
+
+        function formatInline(text) {
+            return escapeHtml(text)
+                .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+                .replace(/\*(.+?)\*/g, "<em>$1</em>")
+                .replace(/`([^`]+)`/g, "<code>$1</code>")
+                .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2">$1</a>');
+        }
+
+        function splitTableRow(line) {
+            const trimmed = (line || "").trim();
+            if (!trimmed.length) return [];
+            const normalized = trimmed.replace(/^\|/, "").replace(/\|$/, "");
+            if (!normalized.length) return [];
+            return normalized.split("|").map(cell => cell.trim());
+        }
+
+        function normalizeCells(cells, columnCount) {
+            const normalized = cells.slice(0, columnCount);
+            while (normalized.length < columnCount) {
+                normalized.push("");
+            }
+            return normalized;
+        }
+
+        function isTableSeparator(line) {
+            if (!line) return false;
+            const trimmed = line.trim();
+            if (!trimmed.length) return false;
+            return /^\|?(?:\s*:?-{3,}:?\s*\|)+\s*$/.test(trimmed);
+        }
+
+        function looksLikeTableHeader(line) {
+            if (!line || line.indexOf("|") === -1) return false;
+            const trimmed = line.trim();
+            if (!trimmed.length || trimmed.startsWith(">")) return false;
+            const cells = splitTableRow(line);
+            return cells.length > 1;
+        }
+
+        function isTableBodyLine(line) {
+            if (!line) return false;
+            const trimmed = line.trim();
+            if (!trimmed.length) return false;
+            return trimmed.indexOf("|") !== -1;
+        }
+
+        function parseTableAlignments(line, columnCount) {
+            const tokens = splitTableRow(line);
+            const alignments = [];
+            const tokenRecord = [];
+            for (let i = 0; i < columnCount; i++) {
+                const token = (tokens[i] || "").trim();
+                tokenRecord.push(token.length ? token : "---");
+                const starts = token.startsWith(":");
+                const ends = token.endsWith(":");
+                if (starts && ends) alignments.push("center");
+                else if (starts) alignments.push("left");
+                else if (ends) alignments.push("right");
+                else alignments.push("left");
+            }
+            return { alignments, tokens: tokenRecord };
+        }
+
+        function renderTable(headerCells, bodyRows, alignmentData) {
+            const columnCount = headerCells.length;
+            const normalizedBody = bodyRows.map(row => normalizeCells(row, columnCount));
+            const safeBody = normalizedBody.length ? normalizedBody : [new Array(columnCount).fill("")];
+            const alignAttr = escapeHtml((alignmentData.tokens || []).slice(0, columnCount).join(","));
+            let html = '<table class="ty-table" data-align-tokens="' + alignAttr + '">';
+            html += "<thead><tr>";
+            headerCells.forEach((cell, index) => {
+                const align = alignmentData.alignments[index] || "left";
+                html += '<th data-align="' + align + '">' + formatInline(cell) + "</th>";
+            });
+            html += "</tr></thead><tbody>";
+            safeBody.forEach(row => {
+                html += "<tr>";
+                row.forEach((cell, index) => {
+                    const align = alignmentData.alignments[index] || "left";
+                    html += '<td data-align="' + align + '">' + formatInline(cell) + "</td>";
+                });
+                html += "</tr>";
+            });
+            html += "</tbody></table>";
+            return html;
+        }
+
+        function markdownToHtml(md) {
+            const lines = (md || "").split(/\r?\n/);
+            let html = "";
+            let inList = false;
+            let inCode = false;
+            const fencePattern = /^\s*```(.*)$/;
+
+            const closeList = () => {
+                if (inList) {
+                    html += "</ul>";
+                    inList = false;
+                }
+            };
+
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i] || "";
+                const fenceMatch = line.match(fencePattern);
+                if (fenceMatch) {
+                    closeList();
+                    if (!inCode) {
+                        const langRaw = (fenceMatch[1] || "").trim();
+                        const normalizedClass = normalizeLanguageName(langRaw);
+                        const langAttr = langRaw.length
+                            ? ' data-lang="' + escapeHtml(langRaw) + '"'
+                            : "";
+                        const classAttr = normalizedClass.length
+                            ? ' class="language-' + escapeHtml(normalizedClass) + '"'
+                            : "";
+                        html += "<pre" + langAttr + "><code" + classAttr + ">";
+                        inCode = true;
+                    } else {
+                        html += "</code></pre>";
+                        inCode = false;
+                    }
+                    continue;
+                }
+                if (inCode) {
+                    html += escapeHtml(line) + "\n";
+                    continue;
+                }
+
+                if (looksLikeTableHeader(line) && i + 1 < lines.length && isTableSeparator(lines[i + 1])) {
+                    closeList();
+                    const headerCells = splitTableRow(line);
+                    const alignmentData = parseTableAlignments(lines[i + 1], headerCells.length);
+                    i += 2;
+                    const bodyRows = [];
+                    while (i < lines.length && isTableBodyLine(lines[i])) {
+                        bodyRows.push(splitTableRow(lines[i]));
+                        i++;
+                    }
+                    i--;
+                    html += renderTable(headerCells, bodyRows, alignmentData);
+                    continue;
+                }
+
+                if (/^\s*-\s+/.test(line)) {
+                    if (!inList) {
+                        html += "<ul>";
+                        inList = true;
+                    }
+                    const item = line.replace(/^\s*-\s+/, "");
+                    html += "<li>" + formatInline(item) + "</li>";
+                    continue;
+                } else {
+                    closeList();
+                }
+
+                if (/^######\s+/.test(line)) html += "<h6>" + formatInline(line.replace(/^######\s+/, "")) + "</h6>";
+                else if (/^#####\s+/.test(line)) html += "<h5>" + formatInline(line.replace(/^#####\s+/, "")) + "</h5>";
+                else if (/^####\s+/.test(line)) html += "<h4>" + formatInline(line.replace(/^####\s+/, "")) + "</h4>";
+                else if (/^###\s+/.test(line)) html += "<h3>" + formatInline(line.replace(/^###\s+/, "")) + "</h3>";
+                else if (/^##\s+/.test(line)) html += "<h2>" + formatInline(line.replace(/^##\s+/, "")) + "</h2>";
+                else if (/^#\s+/.test(line)) html += "<h1>" + formatInline(line.replace(/^#\s+/, "")) + "</h1>";
+                else if (/^>\s+/.test(line)) html += "<blockquote>" + formatInline(line.replace(/^>\s+/, "")) + "</blockquote>";
+                else if (line.trim() === "") html += "<p><br/></p>";
+                else html += "<p>" + formatInline(line) + "</p>";
+            }
+
+            closeList();
+            if (inCode) html += "</pre>";
+            return html;
+        }
+
+        function alignmentTokenFromName(name) {
+            const normalized = (name || "").toLowerCase();
+            if (normalized === "center") return ":---:";
+            if (normalized === "right") return "---:";
+            return ":---";
+        }
+
+        function escapeTableCell(text) {
+            return (text || "").trim().replace(/\|/g, "\\|").replace(/\r?\n/g, " ");
+        }
+
+        function tableToMarkdown(table) {
+            const headerRow = table.querySelector("thead tr") || table.querySelector("tr");
+            if (!headerRow) return [];
+            const headerCells = Array.from(headerRow.cells);
+            if (!headerCells.length) return [];
+            const columnCount = headerCells.length;
+            const tokenAttr = table.getAttribute("data-align-tokens") || "";
+            let alignTokens = tokenAttr.split(",").map(token => token.trim()).filter(token => token.length);
+            if (!alignTokens.length) {
+                alignTokens = headerCells.map(cell => alignmentTokenFromName(cell.getAttribute("data-align") || "left"));
+            }
+            while (alignTokens.length < columnCount) {
+                alignTokens.push(alignmentTokenFromName("left"));
+            }
+            alignTokens = alignTokens.slice(0, columnCount);
+
+            const headerLine = "| " + headerCells.map(cell => escapeTableCell(cell.textContent)).join(" | ") + " |";
+
+            const rows = [];
+            const sourceRows = table.querySelectorAll("tbody tr");
+            const bodyRows = sourceRows.length ? Array.from(sourceRows) : Array.from(table.querySelectorAll("tr")).slice(1);
+            bodyRows.forEach(row => {
+                const cells = Array.from(row.cells).map(cell => escapeTableCell(cell.textContent));
+                while (cells.length < columnCount) {
+                    cells.push("");
+                }
+                rows.push("| " + cells.slice(0, columnCount).join(" | ") + " |");
+            });
+            if (!rows.length) {
+                rows.push("| " + new Array(columnCount).fill(" ").join(" | ") + " |");
+            }
+
+            return [
+                headerLine,
+                "| " + alignTokens.join(" | ") + " |",
+                ...rows,
+                ""
+            ];
+        }
+
+        function htmlToMarkdown(html) {
+            const container = document.createElement("div");
+            container.innerHTML = html;
+            const lines = [];
+            function walk(node) {
+                if (node.nodeType === Node.TEXT_NODE) {
+                    lines.push(node.nodeValue.replace(/\s+/g, " "));
+                    return;
+                }
+                switch (node.nodeName) {
+                    case "H1":
+                    case "H2":
+                    case "H3":
+                    case "H4":
+                    case "H5":
+                    case "H6": {
+                        const level = parseInt(node.nodeName.substring(1), 10);
+                        lines.push("#".repeat(level) + " " + node.textContent.trim());
+                        break;
+                    }
+                    case "P": {
+                        const text = node.textContent.trim();
+                        lines.push(text.length ? text : "");
+                        break;
+                    }
+                    case "LI": {
+                        lines.push("- " + node.textContent.trim());
+                        break;
+                    }
+                    case "UL": {
+                        Array.from(node.childNodes).forEach(walk);
+                        break;
+                    }
+                    case "BLOCKQUOTE": {
+                        const text = node.textContent.trim();
+                        lines.push("> " + text);
+                        break;
+                    }
+                    case "PRE": {
+                        const lang = (node.getAttribute("data-lang") || "").trim();
+                        lines.push(lang.length ? "```" + lang : "```");
+                        lines.push(node.textContent.replace(/\r?\n$/, ""));
+                        lines.push("```");
+                        break;
+                    }
+                    case "TABLE": {
+                        const tableLines = tableToMarkdown(node);
+                        if (tableLines.length) {
+                            lines.push(...tableLines);
+                        }
+                        break;
+                    }
+                    default:
+                        Array.from(node.childNodes).forEach(walk);
+                }
+            }
+            Array.from(container.childNodes).forEach(walk);
+            return lines.join("\n").replace(/\n{3,}/g, "\n\n");
+        }
+
+        function wrapSelectionWith(before, after, placeholder = "") {
+            const selection = window.getSelection();
+            const text = selection && selection.toString().length
+                ? selection.toString()
+                : placeholder;
+            document.execCommand("insertHTML", false, before + escapeHtml(text) + after);
+        }
+
+        function currentCursorLine() {
+            const selection = window.getSelection();
+            if (!selection || selection.rangeCount === 0) return 1;
+            const range = selection.getRangeAt(0).cloneRange();
+            const preRange = range.cloneRange();
+            preRange.selectNodeContents(editor);
+            preRange.setEnd(range.startContainer, range.startOffset);
+            const text = preRange.toString().replace(/\r/g, "");
+            if (!text.length) return 1;
+            return text.split("\n").length;
+        }
+
+        const cjkCharRegex = /[\u3400-\u4DBF\u4E00-\u9FFF\u3040-\u30FF\uAC00-\uD7AF]/;
+        const mathSymbolRegex = /[\u2200-\u22FF]/;
+        const asciiWordRegex = /[A-Za-z0-9_'\-]/;
+
+        function wordCountFromMarkdown(md) {
+            if (!md) return 0;
+            let count = 0;
+            let inAsciiWord = false;
+            for (const ch of md) {
+                if (/\s/.test(ch)) {
+                    if (inAsciiWord) {
+                        count++;
+                        inAsciiWord = false;
+                    }
+                    continue;
+                }
+                if (cjkCharRegex.test(ch)) {
+                    if (inAsciiWord) {
+                        count++;
+                        inAsciiWord = false;
+                    }
+                    count++;
+                    continue;
+                }
+                if (mathSymbolRegex.test(ch)) {
+                    if (inAsciiWord) {
+                        count++;
+                        inAsciiWord = false;
+                    }
+                    count++;
+                    continue;
+                }
+                if (asciiWordRegex.test(ch)) {
+                    inAsciiWord = true;
+                    continue;
+                }
+                if (inAsciiWord) {
+                    count++;
+                    inAsciiWord = false;
+                }
+            }
+            if (inAsciiWord) count++;
+            return count;
+        }
+
+        let cursorStateHandle = 0;
+
+        function notifyCursorState() {
+            if (!qtBridge || !qtBridge.notifyCursorState) return;
+            const line = currentCursorLine();
+            const words = wordCountFromMarkdown(currentMarkdown);
+            qtBridge.notifyCursorState(line, words);
+        }
+
+        function scheduleCursorState() {
+            if (cursorStateHandle) {
+                cancelAnimationFrame(cursorStateHandle);
+            }
+            cursorStateHandle = requestAnimationFrame(() => {
+                cursorStateHandle = 0;
+                notifyCursorState();
+            });
+        }
+
+        function insertCodeBlockHtml() {
+            const selection = window.getSelection();
+            const text = selection && selection.toString().trim().length
+                ? selection.toString()
+                : "代码内容";
+            const langInput = window.prompt("输入代码块语言（如 bash、python，可留空）：", "");
+            const lang = (langInput || "").trim();
+            const langAttr = lang.length ? ' data-lang="' + escapeHtml(lang) + '"' : "";
+            const className = normalizeLanguageName(lang);
+            const classAttr = className.length ? ' class="language-' + escapeHtml(className) + '"' : "";
+            const html = "<pre" + langAttr + "><code" + classAttr + ">" + escapeHtml(text) + "</code></pre><p><br/></p>";
+            document.execCommand("insertHTML", false, html);
+        }
+
+        function insertLinkHtml(url) {
+            const selection = window.getSelection();
+            const label = selection && selection.toString().length
+                ? selection.toString()
+                : (url || "链接");
+            const safeUrl = escapeHtml(url || "https://");
+            const safeLabel = escapeHtml(label);
+            document.execCommand("insertHTML", false, '<a href="' + safeUrl + '">' + safeLabel + "</a>");
+        }
+
+        function scrollToHeading(text, level) {
+            const trimmed = (text || "").trim();
+            if (!trimmed.length) return;
+            let selector = "h1,h2,h3,h4,h5,h6";
+            if (level >= 1 && level <= 6) {
+                selector = "h" + level;
+            }
+            const nodes = editor.querySelectorAll(selector);
+            for (const node of nodes) {
+                if (node.textContent.trim() === trimmed) {
+                    node.scrollIntoView({ behavior: "smooth", block: "center" });
+                    const range = document.createRange();
+                    range.selectNodeContents(node);
+                    range.collapse(false);
+                    const sel = window.getSelection();
+                    sel.removeAllRanges();
+                    sel.addRange(range);
+                    editor.focus();
+                    break;
+                }
+            }
+        }
+
+        function syncFromMarkdown(markdown) {
+            suppressChange = true;
+            currentMarkdown = markdown || "";
+            editor.innerHTML = markdownToHtml(currentMarkdown);
+            setTimeout(() => {
+                suppressChange = false;
+                scheduleCursorState();
+            }, 0);
+        }
+
+        editor.addEventListener("input", () => {
+            if (suppressChange) return;
+            const md = htmlToMarkdown(editor.innerHTML);
+            currentMarkdown = md;
+            if (qtBridge) qtBridge.notifyContentChanged(md);
+            scheduleCursorState();
+        });
+
+        document.addEventListener("selectionchange", () => {
+            scheduleCursorState();
+        });
+
+        ["keyup", "mouseup", "focus", "compositionend"].forEach(eventName => {
+            editor.addEventListener(eventName, scheduleCursorState);
+        });
+
+        new QWebChannel(qt.webChannelTransport, channel => {
+            qtBridge = channel.objects.editorBridge;
+            if (qtBridge.requestInitialContent) {
+                qtBridge.requestInitialContent();
+            }
+        });
+
+        window.TyporaEditor = {
+            setMarkdown: syncFromMarkdown,
+            getMarkdown: () => htmlToMarkdown(editor.innerHTML),
+            applyTheme: applyThemePalette,
+            setPlainMode: setPlainMode,
+            execCommand: payload => {
+                if (!payload) return;
+                if (typeof payload === "string") {
+                    payload = { command: payload };
+                }
+                const command = payload.command;
+                if (!command) return;
+
+                let notifyChange = true;
+                switch (command) {
+                    case "bold":
+                        document.execCommand("bold");
+                        break;
+                    case "italic":
+                        document.execCommand("italic");
+                        break;
+                    case "unordered-list":
+                        document.execCommand("insertUnorderedList");
+                        break;
+                    case "inline-code":
+                        wrapSelectionWith("<code>", "</code>", "code");
+                        break;
+                    case "code-block":
+                        insertCodeBlockHtml();
+                        break;
+                    case "insert-link":
+                        insertLinkHtml(payload.value || "");
+                        break;
+                    case "heading": {
+                        const level = Math.min(Math.max(parseInt(payload.level || 1, 10), 1), 6);
+                        document.execCommand("formatBlock", false, "H" + level);
+                        break;
+                    }
+                    case "blockquote":
+                        document.execCommand("formatBlock", false, "BLOCKQUOTE");
+                        break;
+                    case "scroll-to-heading":
+                        notifyChange = false;
+                        scrollToHeading(payload.value || "", payload.level || 0);
+                        break;
+                    default:
+                        document.execCommand(command, false, payload.value || null);
+                }
+
+                if (notifyChange) {
+                    const md = htmlToMarkdown(editor.innerHTML);
+                    currentMarkdown = md;
+                    if (qtBridge) qtBridge.notifyContentChanged(md);
+                }
+                scheduleCursorState();
+            }
+        };
+    </script>
+</body>
+</html>
