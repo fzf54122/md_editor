@@ -7,7 +7,7 @@ on:
 
 jobs:
   build-linux:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v4
 
@@ -52,6 +52,8 @@ jobs:
             mingw-w64-x86_64-cmake
             mingw-w64-x86_64-ninja
             mingw-w64-x86_64-qt5
+            mingw-w64-x86_64-qt5-webengine
+            mingw-w64-x86_64-qt5-webchannel
             mingw-w64-x86_64-nsis
             mingw-w64-x86_64-imagemagick
             mingw-w64-x86_64-librsvg
@@ -68,6 +70,7 @@ jobs:
         env:
           GENERATOR: "Ninja"
           PATH: /mingw64/bin:${PATH}
+          CMAKE_PREFIX_PATH: /mingw64/lib/cmake
         run: |
           cd ${GITHUB_WORKSPACE}
           bash scripts/build.sh build
