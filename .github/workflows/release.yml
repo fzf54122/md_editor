@@ -43,6 +43,27 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set up Python (for aqtinstall)
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install Qt via aqt (win64_mingw81, WebEngine)
+        shell: pwsh
+        env:
+          QT_VERSION: 5.15.2
+          QT_ARCH: win64_mingw81
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install aqtinstall
+          python -m aqt install-qt windows desktop $env:QT_VERSION $env:QT_ARCH --modules qtwebengine qtwebchannel -O $env:GITHUB_WORKSPACE/qt
+          $qtCmake = "$env:GITHUB_WORKSPACE/qt/$env:QT_VERSION/mingw81_64/lib/cmake/Qt5"
+          $qtPrefix = "$env:GITHUB_WORKSPACE/qt/$env:QT_VERSION/mingw81_64/lib/cmake"
+          $qtBin = "$env:GITHUB_WORKSPACE/qt/$env:QT_VERSION/mingw81_64/bin"
+          echo "Qt5_DIR=$qtCmake" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          echo "CMAKE_PREFIX_PATH=$qtPrefix" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          echo "QT_BIN=$qtBin" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
       - name: Set up msys2
         uses: msys2/setup-msys2@v2
         with:
@@ -51,7 +72,6 @@ jobs:
             mingw-w64-x86_64-toolchain
             mingw-w64-x86_64-cmake
             mingw-w64-x86_64-ninja
-            mingw-w64-x86_64-python-pip
             mingw-w64-x86_64-nsis
             mingw-w64-x86_64-imagemagick
             mingw-w64-x86_64-librsvg
@@ -64,25 +84,15 @@ jobs:
             magick src/resources/icon.svg src/resources/icon.ico
           fi
 
-      - name: Install Qt 5.15.2 (mingw81_64) with WebEngine
-        env:
-          QT_VERSION: 5.15.2
-          QT_ARCH: win64_mingw81
-        run: |
-          cd ${GITHUB_WORKSPACE}
-          python3 -m pip install --upgrade pip
-          python3 -m pip install aqtinstall
-          python3 -m aqt install-qt windows desktop ${QT_VERSION} ${QT_ARCH} --modules qtwebengine qtwebchannel -O ${GITHUB_WORKSPACE}/qt
-          echo "Qt5_DIR=${GITHUB_WORKSPACE}/qt/${QT_VERSION}/mingw81_64/lib/cmake/Qt5" >> $GITHUB_ENV
-          echo "CMAKE_PREFIX_PATH=${GITHUB_WORKSPACE}/qt/${QT_VERSION}/mingw81_64/lib/cmake" >> $GITHUB_ENV
-          echo "PATH=${GITHUB_WORKSPACE}/qt/${QT_VERSION}/mingw81_64/bin:$PATH" >> $GITHUB_ENV
-
       - name: Build and package (NSIS)
-        env:
-          GENERATOR: "Ninja"
-          PATH: /mingw64/bin:${PATH}
         run: |
           cd ${GITHUB_WORKSPACE}
+          QT_ROOT_WIN="${GITHUB_WORKSPACE}/qt/5.15.2/mingw81_64"
+          QT_ROOT_MSYS=$(cygpath -u "$QT_ROOT_WIN")
+          export PATH="/mingw64/bin:${QT_ROOT_MSYS}/bin:$PATH"
+          export CMAKE_PREFIX_PATH="${QT_ROOT_MSYS}/lib/cmake"
+          export Qt5_DIR="${QT_ROOT_MSYS}/lib/cmake/Qt5"
+          export GENERATOR="Ninja"
           bash scripts/build.sh build
 
       - name: Create Release (exe)
