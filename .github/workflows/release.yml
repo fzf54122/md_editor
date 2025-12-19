@@ -7,7 +7,7 @@ on:
 
 jobs:
   build-linux:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v4
 
@@ -51,9 +51,7 @@ jobs:
             mingw-w64-x86_64-toolchain
             mingw-w64-x86_64-cmake
             mingw-w64-x86_64-ninja
-            mingw-w64-x86_64-qt5
-            mingw-w64-x86_64-qt5-webengine
-            mingw-w64-x86_64-qt5-webchannel
+            mingw-w64-x86_64-python-pip
             mingw-w64-x86_64-nsis
             mingw-w64-x86_64-imagemagick
             mingw-w64-x86_64-librsvg
@@ -66,11 +64,23 @@ jobs:
             magick src/resources/icon.svg src/resources/icon.ico
           fi
 
+      - name: Install Qt 5.15.2 (mingw81_64) with WebEngine
+        env:
+          QT_VERSION: 5.15.2
+          QT_ARCH: win64_mingw81
+        run: |
+          cd ${GITHUB_WORKSPACE}
+          python3 -m pip install --upgrade pip
+          python3 -m pip install aqtinstall
+          python3 -m aqt install-qt windows desktop ${QT_VERSION} ${QT_ARCH} --modules qtwebengine qtwebchannel -O ${GITHUB_WORKSPACE}/qt
+          echo "Qt5_DIR=${GITHUB_WORKSPACE}/qt/${QT_VERSION}/mingw81_64/lib/cmake/Qt5" >> $GITHUB_ENV
+          echo "CMAKE_PREFIX_PATH=${GITHUB_WORKSPACE}/qt/${QT_VERSION}/mingw81_64/lib/cmake" >> $GITHUB_ENV
+          echo "PATH=${GITHUB_WORKSPACE}/qt/${QT_VERSION}/mingw81_64/bin:$PATH" >> $GITHUB_ENV
+
       - name: Build and package (NSIS)
         env:
           GENERATOR: "Ninja"
           PATH: /mingw64/bin:${PATH}
-          CMAKE_PREFIX_PATH: /mingw64/lib/cmake
         run: |
           cd ${GITHUB_WORKSPACE}
           bash scripts/build.sh build
