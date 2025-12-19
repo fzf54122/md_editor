@@ -10,14 +10,26 @@ choose_generator() {
         echo "${GENERATOR}"
         return
     fi
-    if command -v ninja >/dev/null 2>&1; then
-        echo "Ninja"
-    elif command -v mingw32-make >/dev/null 2>&1; then
-        echo "MinGW Makefiles"
-    elif command -v nmake >/dev/null 2>&1; then
+    if [[ "$OSTYPE" == msys* || "$OSTYPE" == cygwin* || "$OSTYPE" == win32 ]]; then
+        if command -v nmake >/dev/null 2>&1; then
+            echo "NMake Makefiles"
+            return
+        fi
+        if command -v ninja >/dev/null 2>&1; then
+            echo "Ninja"
+            return
+        fi
+        if command -v mingw32-make >/dev/null 2>&1; then
+            echo "MinGW Makefiles"
+            return
+        fi
         echo "NMake Makefiles"
     else
-        echo "Ninja"
+        if command -v ninja >/dev/null 2>&1; then
+            echo "Ninja"
+        else
+            echo "Unix Makefiles"
+        fi
     fi
 }
 

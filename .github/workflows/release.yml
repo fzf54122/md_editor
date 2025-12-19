@@ -31,6 +31,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set up MSVC environment
+        shell: pwsh
+        run: |
+          echo "Adding VS DevCmd to PATH for nmake/msvc..."
+          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+          $vsroot = & $vswhere -latest -products * -requires Microsoft.Component.MSBuild -property installationPath
+          if (-not $vsroot) { throw "VS installation not found" }
+          $devcmd = Join-Path $vsroot "Common7\Tools\VsDevCmd.bat"
+          echo "VSDEVCMD=$devcmd" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
       - name: Install ImageMagick (convert SVG to ICO)
         run: choco install imagemagick -y
 
@@ -45,9 +55,14 @@ jobs:
       - name: Set Qt5_DIR for CMake
         run: |
           echo "Qt5_DIR=C:/Program Files/Qt/5.15.2/msvc2019_64/lib/cmake/Qt5" >> $GITHUB_ENV
+          echo "CMAKE_PREFIX_PATH=C:/Program Files/Qt/5.15.2/msvc2019_64/lib/cmake" >> $GITHUB_ENV
+          echo "GENERATOR=NMake Makefiles" >> $GITHUB_ENV
+          echo "PATH=C:/Program Files/Qt/5.15.2/msvc2019_64/bin;$PATH" >> $GITHUB_ENV
 
       - name: Build .exe package
-        run: bash scripts/build.sh build
+        shell: pwsh
+        run: |
+          cmd /c "\"%VSDEVCMD%\" -arch=x64 -host_arch=x64 && bash scripts/build.sh build"
 
       - name: Create Release for .exe package
         uses: softprops/action-gh-release@v1
