@@ -11,7 +11,7 @@ QString DialogHelper::showOpenFileDialog(QWidget *parent, const QString &lastDir
     dialog.setFileMode(QFileDialog::ExistingFile);
     dialog.setViewMode(QFileDialog::Detail);
     dialog.setNameFilters({
-        "Markdown (*.md)",
+        "Markdown (*.md *.markdown *.mdown *.mkd *.mdtext *.mdtxt *.mkdown *.mdwn *.mdx *.rmd *.qmd)",
         "Text (*.txt)",
         "All Files (*)"
     });
@@ -61,11 +61,11 @@ QString DialogHelper::showSaveFileDialog(QWidget *parent, const QString &title, 
     dialog.setFileMode(QFileDialog::AnyFile);
     dialog.setViewMode(QFileDialog::Detail);
     dialog.setNameFilters({
-        "Markdown (*.md)",
+        "Markdown (*.md *.markdown *.mdown *.mkd *.mdtext *.mdtxt *.mkdown *.mdwn *.mdx *.rmd *.qmd)",
         "Text (*.txt)",
         "All Files (*)"
     });
-    dialog.selectNameFilter("Markdown (*.md)");
+    dialog.selectNameFilter("Markdown (*.md *.markdown *.mdown *.mkd *.mdtext *.mdtxt *.mkdown *.mdwn *.mdx *.rmd *.qmd)");
     if (!useNative) {
         dialog.setOption(QFileDialog::DontUseNativeDialog, true);
         dialog.resize(720, 480);

@@ -33,7 +33,8 @@ bool FileService::isMarkdownFile(const QString &path)
 
     const QString ext = QFileInfo(path).suffix().toLower();
     static const QStringList markdownExt = {
-        "md", "markdown", "mdown", "mkd", "mdtext", "mdtxt"
+        "md", "markdown", "mdown", "mkd", "mdtext", "mdtxt",
+        "mkdown", "mdwn", "mdx", "rmd", "qmd"
     };
     return markdownExt.contains(ext);
 }

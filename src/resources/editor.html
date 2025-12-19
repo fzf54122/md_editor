@@ -196,6 +196,20 @@
             color: inherit;
             white-space: pre;
         }
+        #editor .task-list {
+            list-style: none;
+            padding-left: 0;
+            margin: 16px 0;
+        }
+        #editor .task-list .task-list-item {
+            display: flex;
+            gap: 8px;
+            align-items: flex-start;
+        }
+        #editor .task-list .task-list-item input[type="checkbox"] {
+            margin-top: 4px;
+            cursor: default;
+        }
         #editor hr {
             border: none;
             border-top: 1px dashed var(--border-color);
@@ -302,8 +316,11 @@
 
         function formatInline(text) {
             return escapeHtml(text)
+                .replace(/!\[(.*?)\]\((.+?)\)/g, '<img src="$2" alt="$1">')
                 .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
                 .replace(/\*(.+?)\*/g, "<em>$1</em>")
+                .replace(/~~(.+?)~~/g, "<del>$1</del>")
+                .replace(/==(.+?)==/g, "<mark>$1</mark>")
                 .replace(/`([^`]+)`/g, "<code>$1</code>")
                 .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2">$1</a>');
         }
@@ -390,15 +407,16 @@
         function markdownToHtml(md) {
             const lines = (md || "").split(/\r?\n/);
             let html = "";
-            let inList = false;
+            let currentList = null; // "ul" | "ol" | "task" | null
             let inCode = false;
             const fencePattern = /^\s*```(.*)$/;
+            const hrPattern = /^\s*(?:(\*\s*){3,}|(-\s*){3,}|(_\s*){3,})$/;
 
             const closeList = () => {
-                if (inList) {
-                    html += "</ul>";
-                    inList = false;
-                }
+                if (!currentList) return;
+                if (currentList === "ol") html += "</ol>";
+                else html += "</ul>";
+                currentList = null;
             };
 
             for (let i = 0; i < lines.length; i++) {
@@ -443,13 +461,44 @@
                     continue;
                 }
 
-                if (/^\s*-\s+/.test(line)) {
-                    if (!inList) {
-                        html += "<ul>";
-                        inList = true;
+                if (hrPattern.test(line.trim())) {
+                    closeList();
+                    html += "<hr/>";
+                    continue;
+                }
+
+                const taskMatch = line.match(/^\s*[-*+]\s+\[( |x|X)\]\s+(.*)$/);
+                if (taskMatch) {
+                    if (currentList !== "task") {
+                        closeList();
+                        html += '<ul class="task-list">';
+                        currentList = "task";
                     }
-                    const item = line.replace(/^\s*-\s+/, "");
-                    html += "<li>" + formatInline(item) + "</li>";
+                    const checked = taskMatch[1].toLowerCase() === "x";
+                    const content = formatInline(taskMatch[2]);
+                    html += '<li class="task-list-item"><input type="checkbox" disabled' + (checked ? " checked" : "") + "> " + content + "</li>";
+                    continue;
+                }
+
+                const olMatch = line.match(/^\s*\d+\.\s+(.*)$/);
+                if (olMatch) {
+                    if (currentList !== "ol") {
+                        closeList();
+                        html += "<ol>";
+                        currentList = "ol";
+                    }
+                    html += "<li>" + formatInline(olMatch[1]) + "</li>";
+                    continue;
+                }
+
+                const ulMatch = line.match(/^\s*[-*+]\s+(.*)$/);
+                if (ulMatch) {
+                    if (currentList !== "ul") {
+                        closeList();
+                        html += "<ul>";
+                        currentList = "ul";
+                    }
+                    html += "<li>" + formatInline(ulMatch[1]) + "</li>";
                     continue;
                 } else {
                     closeList();
@@ -461,8 +510,14 @@
                 else if (/^###\s+/.test(line)) html += "<h3>" + formatInline(line.replace(/^###\s+/, "")) + "</h3>";
                 else if (/^##\s+/.test(line)) html += "<h2>" + formatInline(line.replace(/^##\s+/, "")) + "</h2>";
                 else if (/^#\s+/.test(line)) html += "<h1>" + formatInline(line.replace(/^#\s+/, "")) + "</h1>";
-                else if (/^>\s+/.test(line)) html += "<blockquote>" + formatInline(line.replace(/^>\s+/, "")) + "</blockquote>";
-                else if (line.trim() === "") html += "<p><br/></p>";
+                else if (/^>\s+/.test(line)) {
+                    closeList();
+                    html += "<blockquote>" + formatInline(line.replace(/^>\s+/, "")) + "</blockquote>";
+                }
+                else if (line.trim() === "") {
+                    closeList();
+                    html += "<p><br/></p>";
+                }
                 else html += "<p>" + formatInline(line) + "</p>";
             }
 
@@ -522,64 +577,154 @@
             ];
         }
 
+        function inlineToMarkdown(node) {
+            if (node.nodeType === Node.TEXT_NODE) {
+                return node.nodeValue || "";
+            }
+            if (node.nodeType !== Node.ELEMENT_NODE) {
+                return "";
+            }
+
+            const childText = () => Array.from(node.childNodes).map(inlineToMarkdown).join("");
+
+            switch (node.nodeName) {
+            case "STRONG":
+            case "B":
+                return "**" + childText() + "**";
+            case "EM":
+            case "I":
+                return "*" + childText() + "*";
+            case "DEL":
+                return "~~" + childText() + "~~";
+            case "MARK":
+                return "==" + childText() + "==";
+            case "CODE":
+                return "`" + childText() + "`";
+            case "A": {
+                const href = node.getAttribute("href") || "";
+                const text = childText().trim();
+                return "[" + text + "](" + href + ")";
+            }
+            case "IMG": {
+                const alt = node.getAttribute("alt") || "";
+                const src = node.getAttribute("src") || "";
+                return "![" + alt + "](" + src + ")";
+            }
+            case "BR":
+                return "  \n";
+            default:
+                return childText();
+            }
+        }
+
+        function inlineChildrenToMarkdown(node) {
+            return Array.from(node.childNodes).map(inlineToMarkdown).join("");
+        }
+
         function htmlToMarkdown(html) {
             const container = document.createElement("div");
             container.innerHTML = html;
             const lines = [];
+
+            const pushBlank = () => {
+                if (lines.length && lines[lines.length - 1] !== "") {
+                    lines.push("");
+                }
+            };
+
+            function handleList(node, ordered, isTask) {
+                const items = Array.from(node.querySelectorAll(":scope > li"));
+                let index = ordered ? parseInt(node.getAttribute("start") || "1", 10) : 1;
+                items.forEach((li) => {
+                    const checkbox = isTask ? li.querySelector('input[type="checkbox"]') : null;
+                    const checked = checkbox ? checkbox.checked : false;
+                    const content = Array.from(li.childNodes)
+                        .filter(child => !(child.nodeType === Node.ELEMENT_NODE && child.nodeName === "INPUT"))
+                        .map(inlineToMarkdown)
+                        .join("")
+                        .trim();
+                    if (isTask) {
+                        lines.push(`- [${checked ? "x" : " "}] ${content}`);
+                    } else if (ordered) {
+                        lines.push(`${index}. ${content}`);
+                        index += 1;
+                    } else {
+                        lines.push(`- ${content}`);
+                    }
+                });
+                pushBlank();
+            }
+
             function walk(node) {
                 if (node.nodeType === Node.TEXT_NODE) {
-                    lines.push(node.nodeValue.replace(/\s+/g, " "));
+                    const text = (node.nodeValue || "").trim();
+                    if (text.length) lines.push(text);
                     return;
                 }
+                if (node.nodeType !== Node.ELEMENT_NODE)
+                    return;
+
                 switch (node.nodeName) {
-                    case "H1":
-                    case "H2":
-                    case "H3":
-                    case "H4":
-                    case "H5":
-                    case "H6": {
-                        const level = parseInt(node.nodeName.substring(1), 10);
-                        lines.push("#".repeat(level) + " " + node.textContent.trim());
-                        break;
+                case "H1":
+                case "H2":
+                case "H3":
+                case "H4":
+                case "H5":
+                case "H6": {
+                    const level = parseInt(node.nodeName.substring(1), 10);
+                    lines.push("#".repeat(level) + " " + inlineChildrenToMarkdown(node).trim());
+                    pushBlank();
+                    break;
+                }
+                case "P": {
+                    const text = inlineChildrenToMarkdown(node).trim();
+                    lines.push(text.length ? text : "");
+                    pushBlank();
+                    break;
+                }
+                case "BLOCKQUOTE": {
+                    const text = inlineChildrenToMarkdown(node).trim();
+                    const blockLines = text.split(/\r?\n/);
+                    blockLines.forEach(l => lines.push("> " + l));
+                    pushBlank();
+                    break;
+                }
+                case "PRE": {
+                    const lang = (node.getAttribute("data-lang") || "").trim();
+                    const code = node.textContent.replace(/\r?\n$/, "");
+                    lines.push(lang.length ? "```" + lang : "```");
+                    lines.push(code);
+                    lines.push("```");
+                    pushBlank();
+                    break;
+                }
+                case "HR":
+                    lines.push("---");
+                    pushBlank();
+                    break;
+                case "UL": {
+                    const isTask = node.classList.contains("task-list");
+                    handleList(node, false, isTask);
+                    break;
+                }
+                case "OL":
+                    handleList(node, true, false);
+                    break;
+                case "TABLE": {
+                    const tableLines = tableToMarkdown(node);
+                    if (tableLines.length) {
+                        lines.push(...tableLines);
+                        pushBlank();
                     }
-                    case "P": {
-                        const text = node.textContent.trim();
-                        lines.push(text.length ? text : "");
-                        break;
-                    }
-                    case "LI": {
-                        lines.push("- " + node.textContent.trim());
-                        break;
-                    }
-                    case "UL": {
-                        Array.from(node.childNodes).forEach(walk);
-                        break;
-                    }
-                    case "BLOCKQUOTE": {
-                        const text = node.textContent.trim();
-                        lines.push("> " + text);
-                        break;
-                    }
-                    case "PRE": {
-                        const lang = (node.getAttribute("data-lang") || "").trim();
-                        lines.push(lang.length ? "```" + lang : "```");
-                        lines.push(node.textContent.replace(/\r?\n$/, ""));
-                        lines.push("```");
-                        break;
-                    }
-                    case "TABLE": {
-                        const tableLines = tableToMarkdown(node);
-                        if (tableLines.length) {
-                            lines.push(...tableLines);
-                        }
-                        break;
-                    }
-                    default:
-                        Array.from(node.childNodes).forEach(walk);
+                    break;
+                }
+                default:
+                    Array.from(node.childNodes).forEach(walk);
                 }
             }
+
             Array.from(container.childNodes).forEach(walk);
-            return lines.join("\n").replace(/\n{3,}/g, "\n\n");
+            return lines.join("\n").replace(/\n{3,}/g, "\n\n").trim();
         }
 
         function wrapSelectionWith(before, after, placeholder = "") {

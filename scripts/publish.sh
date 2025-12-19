@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
-# 发布 Md Editor 安装包到 GitHub Releases
 set -euo pipefail
+
+# 加载 .env 文件
+if [ -f .env ]; then
+    export $(grep -v '^#' .env | xargs)
+fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
@@ -9,23 +13,7 @@ cd "$REPO_ROOT"
 usage() {
     cat <<'EOF'
 用法：scripts/publish.sh --tag <版本> [可选参数]
-
-参数说明：
-  --tag <版本>         Release / Tag 名称（如 v1.2.0），必填
-  --title <标题>       自定义 Release 标题，默认 "Md Editor <tag>"
-  --target <ref>       Release 对应的 git ref（默认当前 HEAD）
-  --notes <文本>       Release Notes 文本（与 --notes-file 互斥）
-  --notes-file <路径>  从文件读取 Release Notes
-  --build-dir <目录>   指定构建目录，默认 build
-  --draft              以 Draft 形式发布
-  -h, --help           显示本帮助
-
-环境要求：
-  需提前设置 GH_TOKEN 或 GITHUB_TOKEN，并安装 GitHub CLI（gh）。
-
-脚本流程：
-  1. 调用 scripts/build.sh 构建 & 打包（Linux 生成 DEB，检测到 NSIS 时生成 EXE）。
-  2. 使用 gh release create 创建/更新 Release，并上传全部 md-editor*.deb/.exe。
+...
 EOF
 }
 
@@ -35,7 +23,7 @@ RELEASE_TITLE=""
 RELEASE_TARGET=""
 RELEASE_NOTES=""
 RELEASE_NOTES_FILE=""
-RELEASE_DRAFT="false"
+RELEASE_DRAFT="true"  # 默认草稿发布
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -85,11 +73,6 @@ if [[ -z "$RELEASE_TAG" ]]; then
     exit 1
 fi
 
-if [[ -n "$RELEASE_NOTES" && -n "$RELEASE_NOTES_FILE" ]]; then
-    echo "Error: --notes and --notes-file are mutually exclusive." >&2
-    exit 1
-fi
-
 if ! command -v gh >/dev/null 2>&1; then
     echo "错误：缺少 GitHub CLI (gh)，请先安装 https://cli.github.com/。" >&2
     exit 1
@@ -100,13 +83,15 @@ if [[ -z "${GH_TOKEN:-${GITHUB_TOKEN:-}}" ]]; then
     exit 1
 fi
 
-# Ensure build dir exists after running build.sh
+rm -rf "$BUILD_DIR"
 mkdir -p "$BUILD_DIR"
 
-./scripts/build.sh "$BUILD_DIR"
+bash ./scripts/build.sh "$BUILD_DIR"
 
-mapfile -t artifacts < <(find "$BUILD_DIR" -maxdepth 1 -type f \( -name 'md-editor-*.deb' -o -name 'md-editor-*.exe' \) | sort)
+# 收集构建产物，避免子 shell 丢失 BUILD_DIR 变量
+mapfile -t artifacts < <(find "$BUILD_DIR" -maxdepth 1 -type f \( -name "md-editor-*.deb" -o -name "md-editor-*.exe" \) -print | sort)
 
+# 检查数组是否为空
 if [[ ${#artifacts[@]} -eq 0 ]]; then
     echo "错误：在 $BUILD_DIR 未找到 md-editor-*.deb / md-editor-*.exe。" >&2
     exit 1
@@ -114,7 +99,18 @@ fi
 
 title=${RELEASE_TITLE:-"Md Editor ${RELEASE_TAG}"}
 
-gh_args=(release create "$RELEASE_TAG" "${artifacts[@]}" --title "$title")
+# 自动获取变更日志
+if [[ -z "$RELEASE_NOTES" && -z "$RELEASE_NOTES_FILE" ]]; then
+    TARGET_REF="${RELEASE_TARGET:-HEAD}"
+    LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || true)
+    if [[ -n "$LAST_TAG" ]]; then
+        RELEASE_NOTES=$(git log --oneline "${LAST_TAG}..${TARGET_REF}")
+    else
+        RELEASE_NOTES=$(git log --oneline "${TARGET_REF}")
+    fi
+fi
+
+gh_args=(release create "$RELEASE_TAG" "${artifacts[@]}" --title "$title" --notes "$RELEASE_NOTES")
 
 if [[ -n "$RELEASE_TARGET" ]]; then
     gh_args+=(--target "$RELEASE_TARGET")
@@ -122,14 +118,6 @@ fi
 
 if [[ "$RELEASE_DRAFT" == "true" ]]; then
     gh_args+=(--draft)
-fi
-
-if [[ -n "$RELEASE_NOTES_FILE" ]]; then
-    gh_args+=(--notes-file "$RELEASE_NOTES_FILE")
-elif [[ -n "$RELEASE_NOTES" ]]; then
-    gh_args+=(--notes "$RELEASE_NOTES")
-else
-    gh_args+=(--notes "Automated release for ${RELEASE_TAG}")
 fi
 
 echo "准备发布以下安装包："
