@@ -62,7 +62,7 @@ jobs:
       - name: Build .exe package
         shell: pwsh
         run: |
-          cmd /c "\"%VSDEVCMD%\" -arch=x64 -host_arch=x64 && bash scripts/build.sh build"
+          cmd /c "\"%VSDEVCMD%\" -arch=x64 -host_arch=x64 ^&^& bash scripts/build.sh build"
 
       - name: Create Release for .exe package
         uses: softprops/action-gh-release@v1
