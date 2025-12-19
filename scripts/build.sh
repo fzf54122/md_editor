@@ -42,7 +42,7 @@ if [[ "$OSTYPE" == msys* || "$OSTYPE" == cygwin* || "$OSTYPE" == win32 ]]; then
     cmake --build "${BUILD_DIR}" --config "${BUILD_TYPE}"
 
     echo "尝试生成 NSIS 安装包..."
-    if cpack -C "${BUILD_TYPE}"; then
+    if (cd "${BUILD_DIR}" && cpack -C "${BUILD_TYPE}"); then
         echo "成功生成 NSIS 安装包！"
     else
         echo "警告：无法生成 NSIS 安装包。"
@@ -52,7 +52,7 @@ elif [[ "$OSTYPE" == linux* ]]; then
     echo "生成 DEB 包..."
     cmake -S . -B "${BUILD_DIR}" -DCMAKE_BUILD_TYPE="${BUILD_TYPE}"
     cmake --build "${BUILD_DIR}" --config "${BUILD_TYPE}"
-    cpack -G DEB -C "${BUILD_TYPE}"
+    (cd "${BUILD_DIR}" && cpack -G DEB -C "${BUILD_TYPE}")
 fi
 
 # 进入构建目录

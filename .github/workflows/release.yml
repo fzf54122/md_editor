@@ -52,13 +52,14 @@ jobs:
             mingw-w64-x86_64-qt5
             mingw-w64-x86_64-nsis
             mingw-w64-x86_64-imagemagick
+            mingw-w64-x86_64-librsvg
           update: true
 
       - name: Ensure icon.ico
         run: |
           cd ${GITHUB_WORKSPACE}
           if [ ! -f src/resources/icon.ico ]; then
-            convert src/resources/icon.svg src/resources/icon.ico
+            magick src/resources/icon.svg src/resources/icon.ico
           fi
 
       - name: Build and package (NSIS)
