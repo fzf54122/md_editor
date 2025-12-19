@@ -1,6 +1,6 @@
 # Md Editor · Elegant Typora Experience
 
-Md Editor 致力于复刻 Typora 的沉浸式写作体验：一边输入、一边渲染，所见即所得。项目基于 Qt6 Widgets + WebEngine 构建，配合多主题皮肤、Notebook 侧栏、Plain Mode、智能统计等特性，让 Markdown 与纯文本都能在统一的优雅界面中创作。
+Md Editor 致力于复刻 Typora 的沉浸式写作体验：一边输入、一边渲染，所见即所得。项目基于 Qt5 Widgets + WebEngine 构建，配合多主题皮肤、Notebook 侧栏、Plain Mode、智能统计等特性，让 Markdown 与纯文本都能在统一的优雅界面中创作。
 
 ---
 
@@ -34,7 +34,7 @@ Md Editor 致力于复刻 Typora 的沉浸式写作体验：一边输入、一�
 
 **Requirements**
 
-- Qt 6（需启用 Widgets & WebEngineWidgets）
+- Qt 5.15+（需启用 Widgets & WebEngineWidgets）
 - CMake ≥ 3.20
 - C++17 Toolchain
 
@@ -47,6 +47,23 @@ cmake --build build
 ```
 
 首次启动会提示选择文稿或 Notebook 目录；也可直接打开 `plan/` 了解当前迭代目标。
+
+---
+
+## 📦 Debian Package
+
+### Linux（.deb）
+
+1. 运行 `./scripts/build.sh`（或手动执行 `cmake -S . -B build && cmake --build build`）。
+2. `cd build && cpack -G DEB`（脚本会自动执行；如需单独运行可手动调用）。
+3. 得到 `md-editor-<version>-Linux.deb`，用 `sudo apt install ./md-editor-<version>-Linux.deb` 安装，卸载则 `sudo apt remove md-editor`。
+4. 应用图标来自 `src/resources/icon.svg`，打包时会被安装到 `share/icons/hicolor/scalable/apps/md-editor.svg`，可自行替换后再运行脚本。
+
+### Windows（.exe）
+
+1. 确保安装 NSIS，并在 Windows Shell 中执行 `scripts/build.sh`（Git Bash / PowerShell 均可）。
+2. 构建完成后，在 `build/` 目录运行 `cpack -G NSIS`（脚本会检测 NSIS 支持自动执行），生成 `md-editor-<version>.exe` 安装程序。
+3. 双击安装包即可安装，控制面板可卸载；安装过程中使用的图标同样来自 `src/resources/icon.svg`（可换成 `.ico` 后自定义）。
 
 ---
 
