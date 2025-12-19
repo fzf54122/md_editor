@@ -109,4 +109,4 @@ conf/prod_env.py
 celerybeat-schedule.*
 test/
 build/
-plan/
+plan/.env

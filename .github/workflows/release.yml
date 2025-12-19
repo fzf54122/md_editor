@@ -1,23 +1,48 @@
 name: Release
+
 on:
   push:
     tags:
       - 'v*'
   workflow_dispatch:
+
 jobs:
-  build-and-release:
-    runs-on: ubuntu-latest
+  build-deb:
+    runs-on: ubuntu-18.04  # Linux 环境，用于构建 .deb 包
     steps:
       - uses: actions/checkout@v4
-      - name: Install Qt
+
+      - name: Install Qt and dependencies
         run: sudo apt install qtbase5-dev qtwebengine5-dev nsis
-      - name: Build packages
+
+      - name: Build .deb package
         run: bash scripts/build.sh build
-      - name: Create Release
+
+      - name: Create Release for .deb package
         uses: softprops/action-gh-release@v1
         with:
           files: |
             build/md-editor-*.deb
+        env:
+          GITHUB_TOKEN: ${{ secrets.MD }}
+
+  build-exe:
+    runs-on: windows-latest  # Windows 环境，用于构建 .exe 包
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Qt and dependencies
+        run: |
+          choco install qt
+          choco install nsis
+
+      - name: Build .exe package
+        run: bash scripts/build.sh build
+
+      - name: Create Release for .exe package
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
             build/md-editor-*.exe
         env:
           GITHUB_TOKEN: ${{ secrets.MD }}
