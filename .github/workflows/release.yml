@@ -49,6 +49,8 @@ jobs:
           msystem: MINGW64
           install: >-
             mingw-w64-x86_64-toolchain
+            mingw-w64-x86_64-cmake
+            mingw-w64-x86_64-ninja
             mingw-w64-x86_64-qt5
             mingw-w64-x86_64-nsis
             mingw-w64-x86_64-imagemagick
@@ -64,7 +66,7 @@ jobs:
 
       - name: Build and package (NSIS)
         env:
-          GENERATOR: "MinGW Makefiles"
+          GENERATOR: "Ninja"
           PATH: /mingw64/bin:${PATH}
         run: |
           cd ${GITHUB_WORKSPACE}
