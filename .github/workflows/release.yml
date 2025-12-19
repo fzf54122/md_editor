@@ -4,68 +4,74 @@ on:
   push:
     tags:
       - 'v*'
-  workflow_dispatch:
 
 jobs:
-  build-deb:
-    runs-on: ubuntu-18.04  # Linux 环境，用于构建 .deb 包
+  build-linux:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Qt and dependencies
-        run: sudo apt install qtbase5-dev qtwebengine5-dev nsis
+      - name: Install Qt and deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y qtbase5-dev qtwebengine5-dev qtwebengine5-dev-tools libqt5webchannel5-dev imagemagick
 
-      - name: Build .deb package
-        run: bash scripts/build.sh build
+      - name: Convert icon svg -> png -> ico
+        run: |
+          mkdir -p src/resources
+          convert src/resources/icon.svg src/resources/icon.png
+          convert src/resources/icon.svg src/resources/icon.ico || true
 
-      - name: Create Release for .deb package
+      - name: Build and package (deb)
+        run: |
+          bash scripts/build.sh build
+
+      - name: Create Release (deb)
         uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |
             build/md-editor-*.deb
         env:
           GITHUB_TOKEN: ${{ secrets.MD }}
 
-  build-exe:
-    runs-on: windows-latest  # Windows 环境，用于构建 .exe 包
+  build-windows:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up MSVC environment
-        shell: pwsh
+      - name: Set up msys2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          install: >-
+            mingw-w64-x86_64-toolchain
+            mingw-w64-x86_64-qt5
+            mingw-w64-x86_64-nsis
+            mingw-w64-x86_64-imagemagick
+          update: true
+
+      - name: Ensure icon.ico
         run: |
-          echo "Adding VS DevCmd to PATH for nmake/msvc..."
-          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
-          $vsroot = & $vswhere -latest -products * -requires Microsoft.Component.MSBuild -property installationPath
-          if (-not $vsroot) { throw "VS installation not found" }
-          $devcmd = Join-Path $vsroot "Common7\Tools\VsDevCmd.bat"
-          echo "VSDEVCMD=$devcmd" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          cd ${GITHUB_WORKSPACE}
+          if [ ! -f src/resources/icon.ico ]; then
+            convert src/resources/icon.svg src/resources/icon.ico
+          fi
 
-      - name: Install ImageMagick (convert SVG to ICO)
-        run: choco install imagemagick -y
-
-      - name: Install Qt and dependencies
+      - name: Build and package (NSIS)
+        env:
+          GENERATOR: "MinGW Makefiles"
+          PATH: /mingw64/bin:${PATH}
         run: |
-          choco install qt5
-          choco install nsis
+          cd ${GITHUB_WORKSPACE}
+          bash scripts/build.sh build
 
-      - name: Generate icon.ico for Windows resources
-        run: magick src/resources/icon.svg src/resources/icon.ico
-      
-      - name: Set Qt5_DIR for CMake
-        run: |
-          echo "Qt5_DIR=C:/Program Files/Qt/5.15.2/msvc2019_64/lib/cmake/Qt5" >> $GITHUB_ENV
-          echo "CMAKE_PREFIX_PATH=C:/Program Files/Qt/5.15.2/msvc2019_64/lib/cmake" >> $GITHUB_ENV
-          echo "GENERATOR=NMake Makefiles" >> $GITHUB_ENV
-          echo "PATH=C:/Program Files/Qt/5.15.2/msvc2019_64/bin;$PATH" >> $GITHUB_ENV
-
-      - name: Build .exe package
-        shell: pwsh
-        run: |
-          cmd /c "\"%VSDEVCMD%\" -arch=x64 -host_arch=x64 ^&^& bash scripts/build.sh build"
-
-      - name: Create Release for .exe package
+      - name: Create Release (exe)
         uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |
             build/md-editor-*.exe
