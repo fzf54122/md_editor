@@ -25,6 +25,33 @@ add_executable(md_editor
     src/resources/resources.qrc
 )
 
+if (WIN32)
+    set_target_properties(md_editor PROPERTIES WIN32_EXECUTABLE TRUE)
+
+    # 允许通过 -DAPP_ICON=... 覆盖图标路径，默认使用仓库中的 icon.ico
+    set(DEFAULT_APP_ICON "${CMAKE_SOURCE_DIR}/src/resources/icon.ico")
+    if (DEFINED APP_ICON AND APP_ICON)
+        set(APP_ICON_PATH "${APP_ICON}")
+    elseif (EXISTS "${DEFAULT_APP_ICON}")
+        set(APP_ICON_PATH "${DEFAULT_APP_ICON}")
+    else()
+        set(APP_ICON_PATH "")
+    endif()
+
+    if (APP_ICON_PATH)
+        configure_file(
+            "${CMAKE_SOURCE_DIR}/cmake/app_icon.rc.in"
+            "${CMAKE_BINARY_DIR}/app_icon.rc"
+            @ONLY
+        )
+        target_sources(md_editor PRIVATE "${CMAKE_BINARY_DIR}/app_icon.rc")
+        set(CPACK_NSIS_MUI_ICON "${APP_ICON_PATH}")
+        set(CPACK_NSIS_MUI_UNIICON "${APP_ICON_PATH}")
+        set(CPACK_NSIS_INSTALLED_ICON_NAME "bin\\md_editor.exe")
+        set(CPACK_NSIS_DISPLAY_NAME "Md Editor")
+    endif()
+endif()
+
 target_include_directories(md_editor PRIVATE src)
 
 target_link_libraries(md_editor
@@ -47,5 +74,9 @@ set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Md Editor Team")
 set(CPACK_DEBIAN_PACKAGE_SECTION "editors")
 set(CPACK_DEBIAN_PACKAGE_PRIORITY "optional")
 set(CPACK_DEBIAN_PACKAGE_DEPENDS "qtbase5-dev (>= 5.15), qtwebengine5-dev (>= 5.15)")
+
+if (WIN32)
+    set(CPACK_GENERATOR "NSIS")
+endif()
 
 include(CPack)

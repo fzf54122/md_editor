@@ -3,30 +3,44 @@ set -euo pipefail
 
 # 构建目录（默认为 build）
 BUILD_DIR=${1:-build}
+BUILD_TYPE=${BUILD_TYPE:-Release}
 
-# 如果在 Windows 上运行，我们需要指定 MinGW 或 MSVC 的编译器
-if [[ "$OSTYPE" == msys* || "$OSTYPE" == cygwin* ]]; then
+choose_generator() {
+    if [[ -n "${GENERATOR:-}" ]]; then
+        echo "${GENERATOR}"
+        return
+    fi
+    if command -v ninja >/dev/null 2>&1; then
+        echo "Ninja"
+    elif command -v mingw32-make >/dev/null 2>&1; then
+        echo "MinGW Makefiles"
+    elif command -v nmake >/dev/null 2>&1; then
+        echo "NMake Makefiles"
+    else
+        echo "Ninja"
+    fi
+}
+
+if [[ "$OSTYPE" == msys* || "$OSTYPE" == cygwin* || "$OSTYPE" == win32 ]]; then
     echo "在 Windows 环境中构建..."
+    GEN=$(choose_generator)
+    echo "使用生成器: ${GEN}"
 
-    # 使用 CMake 配置和构建项目
-    echo "配置项目并构建..."
-    cmake -S . -B "${BUILD_DIR}" -G "MinGW Makefiles"  # 使用 MinGW 编译器
-    cmake --build "${BUILD_DIR}"
+    cmake -S . -B "${BUILD_DIR}" -G "${GEN}" -DCMAKE_BUILD_TYPE="${BUILD_TYPE}"
+    cmake --build "${BUILD_DIR}" --config "${BUILD_TYPE}"
 
-    # 使用 NSIS 打包 Windows 安装包
     echo "尝试生成 NSIS 安装包..."
-    if cpack -G NSIS; then
+    if cpack -C "${BUILD_TYPE}"; then
         echo "成功生成 NSIS 安装包！"
     else
         echo "警告：无法生成 NSIS 安装包。"
     fi
 
 elif [[ "$OSTYPE" == linux* ]]; then
-    # 如果是 Linux 系统，生成 .deb 包
     echo "生成 DEB 包..."
-    cmake -S . -B "${BUILD_DIR}"
-    cmake --build "${BUILD_DIR}"
-    cpack -G DEB
+    cmake -S . -B "${BUILD_DIR}" -DCMAKE_BUILD_TYPE="${BUILD_TYPE}"
+    cmake --build "${BUILD_DIR}" --config "${BUILD_TYPE}"
+    cpack -G DEB -C "${BUILD_TYPE}"
 fi
 
 # 进入构建目录
