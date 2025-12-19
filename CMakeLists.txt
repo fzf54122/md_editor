@@ -10,6 +10,15 @@ find_package(Qt5 REQUIRED COMPONENTS Widgets WebEngineWidgets WebChannel)
 
 add_executable(md_editor
     src/main.cpp
+    src/services/RecentHistory.cpp
+    src/services/TextStatistics.cpp
+    src/services/FileService.cpp
+    src/ui/MenuBuilder.cpp
+    src/ui/StatsPanel.cpp
+    src/ui/DialogHelper.cpp
+    src/ui/NotebookPane.cpp
+    src/services/NotebookManager.cpp
+    src/ui/EditorPane.cpp
     src/ui/MainWindow.cpp
     src/ui/EditorBridge.cpp
     src/theme/Theme.cpp

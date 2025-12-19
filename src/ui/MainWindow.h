@@ -7,6 +7,15 @@
 #include <QStringList>
 
 #include "theme/Theme.h"
+#include "services/RecentHistory.h"
+#include "services/TextStatistics.h"
+#include "services/NotebookManager.h"
+#include "services/FileService.h"
+#include "NotebookPane.h"
+#include "MenuBuilder.h"
+#include "StatsPanel.h"
+#include "EditorPane.h"
+#include "DialogHelper.h"
 
 class QAction;
 class QMenu;
@@ -36,13 +45,6 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = nullptr);
 
-    enum class StatsDisplayMode {
-        Minutes,
-        Lines,
-        Words,
-        Characters
-    };
-
 private:
     void setupEditor();
     void setupMenu();
@@ -63,12 +65,10 @@ private:
     void updateOutline();
     void focusOutlineItem(QListWidgetItem *item);
     void refreshNotebookList();
-    void populateFileTree(QTreeWidgetItem *parentItem, const QString &path);
     void handleFileTreeItem(QTreeWidgetItem *item);
     void showFileTreeContextMenu(const QPoint &pos);
     void deleteFileAtPath(const QString &filePath);
     void deleteFolderAtPath(const QString &folderPath);
-    void removeHistoryEntry(const QString &path, bool isFolder);
     void selectFileTreePath(const QString &path);
     void applyHeadingLevel(int level);
     void toggleFocusMode(bool enabled);
@@ -86,102 +86,33 @@ private:
     void applyEditorTheme();
     void applyEditorPlainMode();
     void setPlainTextMode(bool enabled);
-    void updateActionText(QAction *action, StatsDisplayMode mode);
     void executeEditorCommand(const QString &command, const QVariantMap &extra = QVariantMap());
-    QString jsonStringLiteral(const QString &text) const;
-    int calculateWordCount(const QString &text) const;
-    void loadRecentHistory();
     void promptInitialOpen();
-    void rememberRecentFile(const QString &path);
-    void rememberRecentFolder(const QString &path);
     bool restoreSessionFromHistory();
-    bool isMarkdownFile(const QString &path) const;
 
 protected:
     void closeEvent(QCloseEvent *event) override;
 
 private:
-    QToolButton *statsButton{};
-    QMenu *statsMenu{};
-    QLabel *statsMinutesLabel{};
-    QLabel *statsLinesLabel{};
-    QLabel *statsWordsLabel{};
-    QLabel *statsCharsLabel{};
-    QAction *statsMinutesAction{};
-    QAction *statsLinesAction{};
-    QAction *statsWordsAction{};
-    QAction *statsCharsAction{};
-    StatsDisplayMode statsDisplayMode{StatsDisplayMode::Words};
+    NotebookPane *notebookPane{};
+    MenuActions menuActions{};
+    StatsPanel *statsPanel{};
     QLabel *activeDocLabel{};
     QString currentFilePath{};
     bool documentDirty{false};
     ThemeId currentTheme{ThemeId::Light};
     QString currentMarkdown{};
-    bool editorReady{false};
-    QString pendingMarkdown{};
     int currentCursorLine{1};
-    QVariantMap pendingEditorTheme;
     bool currentPlainTextMode{false};
 
-    QWebEngineView *webView{};
-    QWebChannel *webChannel{};
-    EditorBridge *editorBridge{};
+    EditorPane *editorPane{};
 
     QWidget *centralContainer{};
-    QWidget *sideContainer{};
-    QWidget *sideRail{};
-    QStackedWidget *sideStack{};
-    QButtonGroup *sideTabGroup{};
-    QToolButton *notebookTabBtn{};
-    QToolButton *outlineTabBtn{};
     QTreeWidget *fileTreeWidget{};
     QListWidget *outlineList{};
-    QPushButton *newFileButton{};
 
-    QAction *newAction{};
-    QAction *openAction{};
-    QAction *openFolderAction{};
-    QAction *saveAction{};
-    QAction *saveAsAction{};
-    QAction *exitAction{};
-    QAction *boldAction{};
-    QAction *italicAction{};
-    QAction *codeAction{};
-    QAction *codeBlockAction{};
-    QAction *linkAction{};
-    QAction *unorderedListAction{};
-    QAction *undoAction{};
-    QAction *redoAction{};
-    QAction *cutAction{};
-    QAction *copyAction{};
-    QAction *pasteAction{};
-    QAction *selectAllAction{};
-    QAction *heading1Action{};
-    QAction *heading2Action{};
-    QAction *heading3Action{};
-    QAction *blockquoteAction{};
-    QAction *focusModeAction{};
-    QAction *outlineViewAction{};
-    QAction *shortcutsAction{};
-    QAction *aboutAction{};
-    QAction *lightThemeAction{};
-    QAction *darkThemeAction{};
-    QAction *solarizedThemeAction{};
-    QAction *elegantThemeAction{};
-    QAction *forestThemeAction{};
-    QAction *sakuraThemeAction{};
-
-    QMenu *fileMenu{};
-    QMenu *editMenu{};
-    QMenu *paragraphMenu{};
-    QMenu *formatMenu{};
-    QMenu *viewMenu{};
-    QMenu *themeMenu{};
-    QMenu *helpMenu{};
-
+    RecentHistory recentHistory{};
     QString lastDirectory;
     bool useNativeFileDialogs{true};
     QString notebookCurrentPath;
-    QStringList recentFiles;
-    QStringList recentFolders;
 };
