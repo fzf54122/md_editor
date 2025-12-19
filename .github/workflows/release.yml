@@ -10,7 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install Qt
-        run: sudo apt install qtbase5-dev qtwebengine5-dev
+        run: sudo apt install qtbase5-dev qtwebengine5-dev nsis
       - name: Build packages
         run: bash scripts/build.sh build
       - name: Create Release
