@@ -5,30 +5,29 @@
     <title>Typora WYSIWYG</title>
     <style>
         :root {
-            --body-bg: #f5f6f8;
+            --body-bg: #f3f4f6;
             --page-bg: #ffffff;
-            --text-color: #2c2c34;
-            --muted-color: #7b7f91;
-            --accent-color: #d64545;
-            --accent-soft: rgba(214, 69, 69, 0.14);
-            --border-color: #e3e6ef;
-            --inline-code-bg: #f5f6fa;
-            --inline-code-color: #c43c67;
-            --code-block-bg: #11131a;
-            --code-block-color: #e9edf5;
-            --blockquote-bg: rgba(214, 69, 69, 0.06);
-            --blockquote-border: #d64545;
-            --blockquote-color: #5c5f6f;
-            --selection-bg: rgba(214, 69, 69, 0.22);
-            --table-head-bg: #f4f5f9;
-            --table-head-color: #4a4e64;
-            --link-underline: rgba(214, 69, 69, 0.4);
+            --text-color: #24292f;
+            --muted-color: #57606a;
+            --accent-color: #0969da;
+            --accent-soft: rgba(9, 105, 218, 0.16);
+            --border-color: #d0d7de;
+            --inline-code-bg: #f6f8fa;
+            --inline-code-color: #cf222e;
+            --code-block-bg: #0d1117;
+            --code-block-color: #e6edf3;
+            --blockquote-bg: #f6f8fa;
+            --blockquote-border: #d0d7de;
+            --blockquote-color: #57606a;
+            --selection-bg: rgba(9, 105, 218, 0.2);
+            --table-head-bg: #f6f8fa;
+            --table-head-color: #24292f;
+            --link-underline: rgba(9, 105, 218, 0.36);
             --code-keyword: #c792ea;
             --code-string: #ecc48d;
             --code-comment: #6b7287;
             --code-number: #f78c6c;
             --code-type: #82aaff;
-            --page-shadow: 0 24px 60px rgba(15, 23, 42, 0.11);
         }
         body.plain-mode {
             background: var(--body-bg);
@@ -127,11 +126,11 @@
             width: 100%;
             min-height: 100%;
             background: var(--page-bg);
-            padding: 42px 56px;
+            padding: 30px 44px;
             box-sizing: border-box;
-            line-height: 1.72;
-            font-size: 17px;
-            letter-spacing: 0.01em;
+            line-height: 1.7;
+            font-size: 16px;
+            letter-spacing: 0;
             outline: none;
         }
         @media (max-width: 1024px) {
@@ -140,10 +139,10 @@
             }
             #editor {
                 width: 100%;
-                padding: 24px 16px;
+                padding: 18px 16px;
             }
             #editor [align="center"] > p.hero-subtitle {
-                font-size: 22px;
+                font-size: 18px;
             }
             #editor [align="center"] > p.lang-switch,
             #editor [align="center"] > p.quick-links {
@@ -151,24 +150,24 @@
             }
         }
         #editor h1 {
-            font-size: 42px;
-            margin: 8px 0 20px;
-            font-weight: 650;
+            font-size: 34px;
+            margin: 10px 0 16px;
+            font-weight: 700;
             border-bottom: 1px solid var(--border-color);
-            padding-bottom: 10px;
+            padding-bottom: 8px;
             scroll-margin-top: 18px;
         }
         #editor h2 {
-            font-size: 32px;
-            margin: 36px 0 16px;
-            font-weight: 650;
+            font-size: 28px;
+            margin: 32px 0 14px;
+            font-weight: 700;
             scroll-margin-top: 18px;
         }
-        #editor h3 { font-size: 24px; margin: 24px 0 12px; font-weight: 600; scroll-margin-top: 18px; }
-        #editor h4 { font-size: 20px; margin: 22px 0 12px; font-weight: 600; scroll-margin-top: 18px; }
-        #editor h5 { font-size: 18px; margin: 20px 0 10px; font-weight: 600; scroll-margin-top: 18px; }
+        #editor h3 { font-size: 22px; margin: 24px 0 12px; font-weight: 650; scroll-margin-top: 18px; }
+        #editor h4 { font-size: 19px; margin: 22px 0 10px; font-weight: 650; scroll-margin-top: 18px; }
+        #editor h5 { font-size: 17px; margin: 18px 0 8px; font-weight: 650; scroll-margin-top: 18px; }
         #editor h6 {
-            font-size: 16px;
+            font-size: 14px;
             margin: 18px 0 8px;
             font-weight: 600;
             color: var(--muted-color);
@@ -177,8 +176,8 @@
             scroll-margin-top: 18px;
         }
         #editor p {
-            margin: 16px 0;
-            font-size: 17px;
+            margin: 14px 0;
+            font-size: 16px;
             color: var(--text-color);
         }
         #editor strong { font-weight: 600; }
@@ -220,14 +219,14 @@
             position: relative;
             margin: 20px 0;
             padding: 26px 16px 14px;
-            border-radius: 10px;
+            border-radius: 8px;
             overflow: auto;
             background: var(--code-block-bg);
             color: var(--code-block-color);
             font-family: "JetBrains Mono", "Fira Code", monospace;
             font-size: 14px;
             line-height: 1.55;
-            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+            box-shadow: inset 0 0 0 1px rgba(240, 246, 252, 0.12);
         }
         #editor pre code {
             display: block;
@@ -308,13 +307,13 @@
         #editor table {
             border-collapse: collapse;
             width: 100%;
-            margin: 28px 0;
+            margin: 20px 0;
             font-size: 0.95em;
             background: var(--page-bg);
         }
         #editor table.ty-table {
             box-shadow: inset 0 0 0 1px var(--border-color);
-            border-radius: 12px;
+            border-radius: 8px;
             overflow: hidden;
         }
         #editor table th,
@@ -349,7 +348,7 @@
         }
         #editor img {
             max-width: 100%;
-            border-radius: 12px;
+            border-radius: 8px;
             box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
             margin: 24px 0;
         }
@@ -363,16 +362,16 @@
             line-height: 1.68;
         }
         #editor [align="center"] > p.hero-subtitle {
-            font-size: 34px;
-            font-weight: 650;
-            margin-top: 14px;
-            margin-bottom: 12px;
-            letter-spacing: 0.01em;
+            font-size: 20px;
+            font-weight: 600;
+            margin-top: 8px;
+            margin-bottom: 10px;
+            letter-spacing: 0;
         }
         #editor [align="center"] > p.lang-switch {
             margin-top: 2px;
-            margin-bottom: 16px;
-            font-size: 30px;
+            margin-bottom: 12px;
+            font-size: 16px;
         }
         #editor [align="center"] > p.badge-row {
             display: flex;
@@ -388,9 +387,9 @@
         }
         #editor [align="center"] > p.quick-links {
             margin-top: 8px;
-            margin-bottom: 16px;
-            font-size: 28px;
-            line-height: 1.8;
+            margin-bottom: 14px;
+            font-size: 15px;
+            line-height: 1.75;
         }
         #editor [align="center"] > p.quick-links a {
             font-weight: 500;
