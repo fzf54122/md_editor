@@ -35,6 +35,8 @@
         }
         body.plain-mode #editorWrapper {
             background: var(--body-bg);
+            display: block;
+            padding: 0;
         }
         body.plain-mode #editor {
             font-family: "JetBrains Mono", "Fira Code", "Menlo", monospace;
@@ -121,10 +123,14 @@
             height: 100%;
             overflow-y: auto;
             background: transparent;
-            padding: 34px 0 58px;
+            padding: 34px 24px 58px;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
         }
         #editor {
-            width: min(980px, calc(100% - 52px));
+            width: min(920px, 100%);
             min-height: calc(100% - 40px);
             background: var(--page-bg);
             padding: 56px 86px;
@@ -146,9 +152,11 @@
         @media (max-width: 1024px) {
             #editorWrapper {
                 padding-top: 18px;
+                padding-left: 12px;
+                padding-right: 12px;
             }
             #editor {
-                width: calc(100% - 24px);
+                width: 100%;
                 border-radius: 14px;
                 padding: 32px 22px;
             }
@@ -872,7 +880,7 @@
             if (/^<!--/.test(trimmed)) {
                 const blocks = [firstLine];
                 if (/-->\s*$/.test(trimmed)) {
-                    return { html: blocks.join("\n"), endIndex: startIndex };
+                    return { kind: "raw", html: blocks.join("\n"), endIndex: startIndex };
                 }
                 let end = startIndex;
                 for (let i = startIndex + 1; i < lines.length; i++) {
@@ -882,15 +890,16 @@
                         break;
                     }
                 }
-                return { html: blocks.join("\n"), endIndex: end };
+                return { kind: "raw", html: blocks.join("\n"), endIndex: end };
             }
 
             const tagMatch = trimmed.match(/^<([A-Za-z][A-Za-z0-9:_-]*)(\s[^>]*)?>\s*$/);
             const oneLineTagMatch = trimmed.match(/^<([A-Za-z][A-Za-z0-9:_-]*)(\s[^>]*)?>[\s\S]*<\/\1>\s*$/);
             const standaloneNode = /^<\/?[A-Za-z][A-Za-z0-9:_-]*(\s[^>]*)?\/?>\s*$/.test(trimmed);
+            const containerTagMatch = trimmed.match(/^<(div|section|article|aside)(\s[^>]*)?>\s*$/i);
 
             if (oneLineTagMatch || /\/>\s*$/.test(trimmed)) {
-                return { html: firstLine, endIndex: startIndex };
+                return { kind: "raw", html: firstLine, endIndex: startIndex };
             }
 
             if (!tagMatch && !standaloneNode) {
@@ -898,18 +907,18 @@
             }
 
             if (standaloneNode && !tagMatch) {
-                return { html: firstLine, endIndex: startIndex };
+                return { kind: "raw", html: firstLine, endIndex: startIndex };
             }
 
             const tag = tagMatch ? tagMatch[1] : "";
             if (!tag.length) {
-                return { html: firstLine, endIndex: startIndex };
+                return { kind: "raw", html: firstLine, endIndex: startIndex };
             }
 
             const closeRegex = new RegExp("</" + tag + "\\s*>", "i");
             const blocks = [firstLine];
             if (closeRegex.test(trimmed)) {
-                return { html: blocks.join("\n"), endIndex: startIndex };
+                return { kind: "raw", html: blocks.join("\n"), endIndex: startIndex };
             }
 
             let end = startIndex;
@@ -922,12 +931,28 @@
                 }
             }
 
-            return { html: blocks.join("\n"), endIndex: end };
+            if (containerTagMatch && blocks.length >= 2) {
+                const closing = blocks[blocks.length - 1].trim();
+                if (new RegExp("^</" + tag + "\\s*>$", "i").test(closing)) {
+                    return {
+                        kind: "markdown-container",
+                        openTag: firstLine,
+                        closeTag: blocks[blocks.length - 1],
+                        innerMarkdown: blocks.slice(1, blocks.length - 1).join("\n"),
+                        endIndex: end
+                    };
+                }
+            }
+
+            return { kind: "raw", html: blocks.join("\n"), endIndex: end };
         }
 
-        function markdownToHtml(md) {
+        function markdownToHtml(md, options = {}) {
+            const nestedContainer = !!options.nestedContainer;
             const sourceLines = (md || "").split(/\r?\n/);
-            const frontMatterParsed = parseFrontMatter(sourceLines);
+            const frontMatterParsed = nestedContainer
+                ? { lines: sourceLines, block: "" }
+                : parseFrontMatter(sourceLines);
             const footnoteParsed = modeSupports("typora")
                 ? parseFootnoteDefinitions(frontMatterParsed.lines)
                 : { lines: frontMatterParsed.lines, defs: new Map() };
@@ -998,7 +1023,12 @@
                     const htmlBlock = parseRawHtmlBlock(lines, i);
                     if (htmlBlock) {
                         closeList();
-                        html += htmlBlock.html;
+                        if (htmlBlock.kind === "markdown-container") {
+                            const innerHtml = markdownToHtml(htmlBlock.innerMarkdown, { nestedContainer: true });
+                            html += htmlBlock.openTag + innerHtml + htmlBlock.closeTag;
+                        } else {
+                            html += htmlBlock.html;
+                        }
                         i = htmlBlock.endIndex;
                         continue;
                     }
@@ -1140,7 +1170,7 @@
                     html += '<div class="math-block" data-math="' + safeExpr + '">' + safeExpr + "</div>";
                 }
             }
-            if (modeSupports("typora")) {
+            if (!nestedContainer && modeSupports("typora")) {
                 html += renderFootnotes(inlineState);
             }
             return html;
@@ -1263,7 +1293,7 @@
             container.innerHTML = html;
             const lines = [];
             const footnoteDefs = [];
-            const rawBlockTags = new Set(["DIV", "SECTION", "ARTICLE", "ASIDE", "HEADER", "FOOTER", "NAV", "DETAILS", "SUMMARY", "FIGURE", "FIGCAPTION", "CENTER"]);
+            const rawContainerTags = new Set(["DIV", "SECTION", "ARTICLE", "ASIDE", "HEADER", "FOOTER", "NAV", "DETAILS", "SUMMARY", "FIGURE", "FIGCAPTION", "CENTER"]);
 
             const pushBlank = () => {
                 if (lines.length && lines[lines.length - 1] !== "") {
@@ -1277,6 +1307,24 @@
                 if (node.nodeName === "SECTION" && node.classList.contains("frontmatter")) return true;
                 if (node.nodeName === "SECTION" && node.classList.contains("footnotes")) return true;
                 return false;
+            };
+
+            const openTagText = (node) => {
+                const tag = (node.nodeName || "div").toLowerCase();
+                const attrs = Array.from(node.attributes || []).map(attr => `${attr.name}="${attr.value.replace(/"/g, "&quot;")}"`);
+                return attrs.length ? `<${tag} ${attrs.join(" ")}>` : `<${tag}>`;
+            };
+
+            const closeTagText = (node) => {
+                const tag = (node.nodeName || "div").toLowerCase();
+                return `</${tag}>`;
+            };
+
+            const serializeHtmlContainer = (node) => {
+                lines.push(openTagText(node));
+                Array.from(node.childNodes).forEach(walk);
+                lines.push(closeTagText(node));
+                pushBlank();
             };
 
             function handleList(node, ordered, isTask) {
@@ -1366,8 +1414,7 @@
                         pushBlank();
                         break;
                     }
-                    lines.push(node.outerHTML);
-                    pushBlank();
+                    serializeHtmlContainer(node);
                     break;
                 }
                 case "HR":
@@ -1435,14 +1482,12 @@
                         });
                         break;
                     }
-                    lines.push(node.outerHTML);
-                    pushBlank();
+                    serializeHtmlContainer(node);
                     break;
                 }
                 default:
-                    if (!isEditorInternalRawNode(node) && rawBlockTags.has(node.nodeName)) {
-                        lines.push(node.outerHTML);
-                        pushBlank();
+                    if (!isEditorInternalRawNode(node) && rawContainerTags.has(node.nodeName)) {
+                        serializeHtmlContainer(node);
                         break;
                     }
                     Array.from(node.childNodes).forEach(walk);
