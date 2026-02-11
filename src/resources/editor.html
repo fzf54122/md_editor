@@ -5,7 +5,7 @@
     <title>Typora WYSIWYG</title>
     <style>
         :root {
-            --body-bg: #eef2f6;
+            --body-bg: #e9edf3;
             --page-bg: #ffffff;
             --text-color: #24292f;
             --muted-color: #57606a;
@@ -28,6 +28,8 @@
             --code-comment: #8b949e;
             --code-number: #79c0ff;
             --code-type: #d2a8ff;
+            --surface-border: #d8dee6;
+            --surface-shadow: 0 20px 45px rgba(15, 23, 42, 0.08);
         }
         body.plain-mode {
             background: var(--body-bg);
@@ -106,7 +108,10 @@
             padding: 0;
             min-height: 100%;
             width: 100%;
-            background: var(--body-bg);
+            background:
+                radial-gradient(1200px 500px at 15% -10%, rgba(9, 105, 218, 0.08), transparent 60%),
+                radial-gradient(1000px 420px at 100% 0%, rgba(36, 41, 47, 0.04), transparent 62%),
+                var(--body-bg);
             color: var(--text-color);
             font-family: "Segoe UI", "PingFang SC", "Microsoft Yahei", "Helvetica Neue", Arial, sans-serif;
             -webkit-font-smoothing: antialiased;
@@ -119,12 +124,12 @@
             height: 100%;
             overflow-y: auto;
             background: transparent;
-            padding: 0;
+            padding: 20px;
             box-sizing: border-box;
         }
         #editor {
-            width: 100%;
-            min-height: 100%;
+            width: min(1140px, 100%);
+            min-height: calc(100% - 40px);
             background: var(--page-bg);
             padding: 26px 20px 42px;
             box-sizing: border-box;
@@ -132,9 +137,13 @@
             font-size: 16px;
             letter-spacing: 0;
             outline: none;
+            margin: 0 auto;
+            border: 1px solid var(--surface-border);
+            border-radius: 14px;
+            box-shadow: var(--surface-shadow);
         }
         #editor:focus {
-            box-shadow: inset 0 0 0 1px var(--accent-soft);
+            box-shadow: var(--surface-shadow), inset 0 0 0 1px var(--accent-soft);
         }
         #editor > h1,
         #editor > h2,
@@ -163,11 +172,13 @@
         }
         @media (max-width: 1024px) {
             #editorWrapper {
-                padding: 0;
+                padding: 10px;
             }
             #editor {
                 width: 100%;
-                padding: 18px 16px;
+                min-height: calc(100% - 20px);
+                padding: 18px 14px;
+                border-radius: 10px;
             }
             #editor > pre,
             #editor > table,
@@ -197,7 +208,7 @@
             }
         }
         #editor h1 {
-            font-size: 34px;
+            font-size: 36px;
             margin: 12px 0 16px;
             font-weight: 700;
             border-bottom: 1px solid var(--border-color);
@@ -210,7 +221,7 @@
             font-weight: 700;
             scroll-margin-top: 18px;
         }
-        #editor h3 { font-size: 22px; margin: 28px 0 12px; font-weight: 650; scroll-margin-top: 18px; }
+        #editor h3 { font-size: 23px; margin: 28px 0 12px; font-weight: 650; scroll-margin-top: 18px; }
         #editor h4 { font-size: 19px; margin: 22px 0 10px; font-weight: 650; scroll-margin-top: 18px; }
         #editor h5 { font-size: 17px; margin: 18px 0 8px; font-weight: 650; scroll-margin-top: 18px; }
         #editor h6 {
@@ -411,8 +422,9 @@
         }
         #editor [align="center"] {
             text-align: center;
-            max-width: 980px;
+            max-width: 960px;
             margin: 0 auto;
+            padding: 10px 0 4px;
         }
         #editor [align="center"] > p {
             margin: 12px 0;
