@@ -46,6 +46,12 @@ public:
     explicit MainWindow(QWidget *parent = nullptr);
 
 private:
+    enum class MarkdownMode {
+        CommonMark,
+        Gfm,
+        Typora
+    };
+
     void setupEditor();
     void setupMenu();
     void setupConnections();
@@ -85,7 +91,13 @@ private:
     void pushMarkdownToEditor();
     void applyEditorTheme();
     void applyEditorPlainMode();
+    void applyEditorMarkdownMode();
     void setPlainTextMode(bool enabled);
+    void setMarkdownMode(MarkdownMode mode);
+    void selectMarkdownModeAction(MarkdownMode mode);
+    static QString markdownModeKey(MarkdownMode mode);
+    static MarkdownMode markdownModeFromKey(const QString &value);
+    void applyPlainLanguageForPath(const QString &path);
     void executeEditorCommand(const QString &command, const QVariantMap &extra = QVariantMap());
     void promptInitialOpen();
     bool restoreSessionFromHistory();
@@ -104,6 +116,8 @@ private:
     QString currentMarkdown{};
     int currentCursorLine{1};
     bool currentPlainTextMode{false};
+    QString currentPlainLanguage{};
+    MarkdownMode currentMarkdownMode{MarkdownMode::Typora};
 
     EditorPane *editorPane{};
 

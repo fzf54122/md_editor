@@ -37,7 +37,9 @@ EditorPane::EditorPane(QWidget *parent)
         editorReady = true;
         applyPendingMarkdown();
         applyPendingTheme();
+        applyPendingPlainLanguage();
         applyPendingPlainMode();
+        applyPendingMarkdownMode();
         emit initialReady();
     });
 
@@ -89,6 +91,27 @@ void EditorPane::setPlainMode(bool enabled)
 {
     currentPlainTextMode = enabled;
     applyPendingPlainMode();
+}
+
+void EditorPane::setPlainLanguage(const QString &language)
+{
+    pendingPlainLanguage = language;
+    applyPendingPlainLanguage();
+    applyPendingPlainMode();
+}
+
+void EditorPane::setMarkdownMode(const QString &mode)
+{
+    const QString normalized = mode.trimmed().toLower();
+    if (normalized == QStringLiteral("commonmark")
+        || normalized == QStringLiteral("gfm")
+        || normalized == QStringLiteral("typora")) {
+        currentMarkdownMode = normalized;
+    } else {
+        currentMarkdownMode = QStringLiteral("typora");
+    }
+
+    applyPendingMarkdownMode();
 }
 
 void EditorPane::executeCommand(const QString &command, const QVariantMap &extra)
@@ -143,7 +166,26 @@ void EditorPane::applyPendingPlainMode()
     if (!editorReady || !webView || !webView->page())
         return;
 
-    const QString script = QStringLiteral("window.TyporaEditor && TyporaEditor.setPlainMode(%1);")
-        .arg(currentPlainTextMode ? "true" : "false");
+    const QString langLiteral = jsonStringLiteral(currentPlainLanguage);
+    const QString script = QStringLiteral("window.TyporaEditor && TyporaEditor.setPlainMode(%1, %2);")
+        .arg(currentPlainTextMode ? "true" : "false", langLiteral);
+    webView->page()->runJavaScript(script);
+}
+
+void EditorPane::applyPendingPlainLanguage()
+{
+    currentPlainLanguage = pendingPlainLanguage;
+    if (!editorReady || !webView || !webView->page())
+        return;
+}
+
+void EditorPane::applyPendingMarkdownMode()
+{
+    if (!editorReady || !webView || !webView->page())
+        return;
+
+    const QString modeLiteral = jsonStringLiteral(currentMarkdownMode);
+    const QString script = QStringLiteral("window.TyporaEditor && TyporaEditor.setMarkdownMode(%1);")
+        .arg(modeLiteral);
     webView->page()->runJavaScript(script);
 }

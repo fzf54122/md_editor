@@ -3,6 +3,7 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QTextStream>
+#include <QHash>
 
 bool FileService::readTextFile(const QString &fileName, QString &outContent)
 {
@@ -37,4 +38,39 @@ bool FileService::isMarkdownFile(const QString &path)
         "mkdown", "mdwn", "mdx", "rmd", "qmd"
     };
     return markdownExt.contains(ext);
+}
+
+QString FileService::languageHintForPath(const QString &path)
+{
+    if (path.isEmpty())
+        return QString();
+
+    const QString ext = QFileInfo(path).suffix().toLower();
+    static const QHash<QString, QString> mapping = {
+        { "py", "python" },
+        { "c", "c" },
+        { "h", "c" },
+        { "cpp", "cpp" },
+        { "cc", "cpp" },
+        { "cxx", "cpp" },
+        { "hpp", "cpp" },
+        { "go", "go" },
+        { "java", "java" },
+        { "js", "javascript" },
+        { "ts", "typescript" },
+        { "tsx", "tsx" },
+        { "sql", "sql" },
+        { "json", "json" },
+        { "yml", "yaml" },
+        { "yaml", "yaml" },
+        { "toml", "toml" },
+        { "ini", "ini" },
+        { "sh", "shell" },
+        { "bash", "shell" },
+        { "zsh", "shell" },
+        { "rs", "rust" },
+        { "cs", "csharp" }
+    };
+
+    return mapping.value(ext);
 }

@@ -14,4 +14,7 @@ public:
 
     // 判断是否为 Markdown 扩展名。
     static bool isMarkdownFile(const QString &path);
+
+    // 基于扩展名返回语言提示（用于 plain mode 语法高亮），未知则返回空串。
+    static QString languageHintForPath(const QString &path);
 };

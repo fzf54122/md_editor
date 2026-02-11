@@ -70,6 +70,7 @@ MainWindow::MainWindow(QWidget *parent)
     };
     const int storedTheme = settings.value("themeId", static_cast<int>(ThemeId::Elegant)).toInt();
     currentTheme = decodeTheme(storedTheme);
+    currentMarkdownMode = markdownModeFromKey(settings.value("markdownMode", QStringLiteral("typora")).toString());
     qApp->setStyleSheet(themeStylesheet(currentTheme));
 
     setupMenu();
@@ -77,7 +78,9 @@ MainWindow::MainWindow(QWidget *parent)
     setupEditor();
     setupConnections();
     applyEditorTheme();
+    applyEditorMarkdownMode();
     selectThemeAction(currentTheme);
+    selectMarkdownModeAction(currentMarkdownMode);
 
     recentHistory.load();
     resetToNewDocument();
@@ -122,6 +125,7 @@ void MainWindow::setupEditor()
 
     connect(editorPane, &EditorPane::initialReady, this, [this]() {
         applyEditorTheme();
+        applyEditorMarkdownMode();
         applyEditorPlainMode();
         pushMarkdownToEditor();
     });
@@ -280,6 +284,16 @@ void MainWindow::setupConnections()
         applyTheme(ThemeId::Sakura);
     });
 
+    connect(menuActions.commonMarkModeAction, &QAction::triggered, this, [this]() {
+        setMarkdownMode(MarkdownMode::CommonMark);
+    });
+    connect(menuActions.gfmModeAction, &QAction::triggered, this, [this]() {
+        setMarkdownMode(MarkdownMode::Gfm);
+    });
+    connect(menuActions.typoraModeAction, &QAction::triggered, this, [this]() {
+        setMarkdownMode(MarkdownMode::Typora);
+    });
+
     connect(menuActions.focusModeAction, &QAction::toggled, this, &MainWindow::toggleFocusMode);
     connect(menuActions.outlineViewAction, &QAction::triggered, this, &MainWindow::openOutlineFromMenu);
     connect(menuActions.shortcutsAction, &QAction::triggered, this, &MainWindow::showShortcutHelp);
@@ -377,6 +391,7 @@ void MainWindow::loadDocumentFromFile(QString fileName, bool updateNotebookPath)
     }
 
     currentMarkdown = content;
+    currentFilePath = fileName;
     setPlainTextMode(!FileService::isMarkdownFile(fileName));
     pushMarkdownToEditor();
     markDocumentClean(fileName);
@@ -731,6 +746,41 @@ void MainWindow::selectThemeAction(ThemeId id)
     setChecked(menuActions.sakuraThemeAction, id == ThemeId::Sakura);
 }
 
+void MainWindow::selectMarkdownModeAction(MarkdownMode mode)
+{
+    auto setChecked = [](QAction *action, bool checked) {
+        if (action) action->setChecked(checked);
+    };
+
+    setChecked(menuActions.commonMarkModeAction, mode == MarkdownMode::CommonMark);
+    setChecked(menuActions.gfmModeAction, mode == MarkdownMode::Gfm);
+    setChecked(menuActions.typoraModeAction, mode == MarkdownMode::Typora);
+}
+
+QString MainWindow::markdownModeKey(MarkdownMode mode)
+{
+    switch (mode) {
+    case MarkdownMode::CommonMark:
+        return QStringLiteral("commonmark");
+    case MarkdownMode::Gfm:
+        return QStringLiteral("gfm");
+    case MarkdownMode::Typora:
+        return QStringLiteral("typora");
+    default:
+        return QStringLiteral("typora");
+    }
+}
+
+MainWindow::MarkdownMode MainWindow::markdownModeFromKey(const QString &value)
+{
+    const QString normalized = value.trimmed().toLower();
+    if (normalized == QStringLiteral("commonmark"))
+        return MarkdownMode::CommonMark;
+    if (normalized == QStringLiteral("gfm"))
+        return MarkdownMode::Gfm;
+    return MarkdownMode::Typora;
+}
+
 QString MainWindow::showOpenFileDialog()
 {
     QString updatedDir = lastDirectory;
@@ -770,18 +820,72 @@ void MainWindow::applyEditorTheme()
         editorPane->applyTheme(currentTheme);
 }
 
+void MainWindow::applyEditorMarkdownMode()
+{
+    if (editorPane)
+        editorPane->setMarkdownMode(markdownModeKey(currentMarkdownMode));
+}
+
 void MainWindow::applyEditorPlainMode()
 {
     if (editorPane)
         editorPane->setPlainMode(currentPlainTextMode);
 }
 
+void MainWindow::setMarkdownMode(MarkdownMode mode)
+{
+    if (currentMarkdownMode == mode)
+        return;
+
+    currentMarkdownMode = mode;
+    QSettings settings("md-editor", "app");
+    settings.setValue("markdownMode", markdownModeKey(currentMarkdownMode));
+    selectMarkdownModeAction(currentMarkdownMode);
+    applyEditorMarkdownMode();
+
+    QString modeName;
+    switch (currentMarkdownMode) {
+    case MarkdownMode::CommonMark:
+        modeName = QStringLiteral("CommonMark");
+        break;
+    case MarkdownMode::Gfm:
+        modeName = QStringLiteral("GFM");
+        break;
+    case MarkdownMode::Typora:
+    default:
+        modeName = QStringLiteral("Typora 扩展");
+        break;
+    }
+    statusBar()->showMessage(QStringLiteral("已切换兼容模式: %1").arg(modeName), 2000);
+}
+
 void MainWindow::setPlainTextMode(bool enabled)
 {
     if (currentPlainTextMode == enabled)
+    {
+        if (enabled) {
+            applyPlainLanguageForPath(currentFilePath);
+        }
         return;
+    }
     currentPlainTextMode = enabled;
+    applyPlainLanguageForPath(currentFilePath);
     applyEditorPlainMode();
+}
+
+void MainWindow::applyPlainLanguageForPath(const QString &path)
+{
+    if (!editorPane)
+        return;
+
+    if (!currentPlainTextMode) {
+        currentPlainLanguage.clear();
+        editorPane->setPlainLanguage(QString());
+        return;
+    }
+
+    currentPlainLanguage = FileService::languageHintForPath(path);
+    editorPane->setPlainLanguage(currentPlainLanguage);
 }
 
 void MainWindow::executeEditorCommand(const QString &command, const QVariantMap &extra)

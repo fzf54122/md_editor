@@ -10,6 +10,7 @@
             --text-color: #2c2c34;
             --muted-color: #7b7f91;
             --accent-color: #d64545;
+            --accent-soft: rgba(214, 69, 69, 0.14);
             --border-color: #e3e6ef;
             --inline-code-bg: #f5f6fa;
             --inline-code-color: #c43c67;
@@ -22,25 +23,34 @@
             --table-head-bg: #f4f5f9;
             --table-head-color: #4a4e64;
             --link-underline: rgba(214, 69, 69, 0.4);
+            --code-keyword: #c792ea;
+            --code-string: #ecc48d;
+            --code-comment: #6b7287;
+            --code-number: #f78c6c;
+            --code-type: #82aaff;
+            --page-shadow: 0 24px 60px rgba(15, 23, 42, 0.11);
         }
         body.plain-mode {
-            background: #eceff4;
+            background: var(--body-bg);
         }
         body.plain-mode #editorWrapper {
-            background: #eceff4;
+            background: var(--body-bg);
         }
         body.plain-mode #editor {
             font-family: "JetBrains Mono", "Fira Code", "Menlo", monospace;
             font-size: 15px;
-            padding: 40px 72px;
-            max-width: 1100px;
-            margin: 0 auto;
-            border-radius: 20px;
-            background: #ffffff;
-            box-shadow: 0 24px 60px rgba(15, 23, 42, 0.12);
-            color: #1f2433;
-            line-height: 1.55;
+            padding: 32px 64px;
+            max-width: none;
+            width: 100%;
+            margin: 0;
+            border-radius: 0;
+            background: var(--page-bg);
+            box-shadow: none;
+            color: var(--text-color);
+            line-height: 1.6;
             letter-spacing: 0;
+            box-sizing: border-box;
+            border: none;
         }
         body.plain-mode #editor h1,
         body.plain-mode #editor h2,
@@ -61,31 +71,44 @@
             padding-left: 20px;
         }
         body.plain-mode #editor blockquote {
-            background: #f4f5f9;
-            border-left-color: #d0d3dc;
-            color: #4c5465;
+            background: var(--blockquote-bg);
+            border-left-color: var(--blockquote-border);
+            color: var(--blockquote-color);
         }
         body.plain-mode #editor code {
-            background: #f0f2f7;
-            color: #c43c67;
+            background: var(--inline-code-bg);
+            color: var(--inline-code-color);
         }
         body.plain-mode #editor pre {
-            background: #1d1f2b;
-            color: #e3e8fb;
+            background: var(--code-block-bg);
+            color: var(--code-block-color);
+            box-shadow: inset 0 0 0 1px var(--border-color);
+            border-radius: 14px;
+        }
+        body.plain-mode #editor pre.plain-text {
+            background: var(--page-bg);
+            color: var(--text-color);
+            padding: 0;
+            margin: 0;
             box-shadow: none;
+            border-radius: 0;
         }
         body.plain-mode #editor table {
-            background: #fdfdff;
+            background: var(--page-bg);
+            border-color: var(--border-color);
         }
         body.plain-mode ::selection {
-            background: rgba(79, 140, 255, 0.25);
+            background: var(--selection-bg);
         }
         html, body {
             margin: 0;
             padding: 0;
             min-height: 100%;
             width: 100%;
-            background: var(--body-bg);
+            background:
+                radial-gradient(1200px 520px at 10% -10%, rgba(214, 69, 69, 0.12), transparent 58%),
+                radial-gradient(900px 440px at 100% 0%, rgba(34, 96, 160, 0.08), transparent 60%),
+                linear-gradient(180deg, #f8f9fc 0%, var(--body-bg) 100%);
             color: var(--text-color);
             font-family: "SF Pro Display", "PingFang SC", "Segoe UI", "Helvetica Neue", "Microsoft Yahei", sans-serif;
             -webkit-font-smoothing: antialiased;
@@ -97,26 +120,47 @@
             width: 100%;
             height: 100%;
             overflow-y: auto;
-            background: var(--page-bg);
+            background: transparent;
+            padding: 34px 0 58px;
         }
         #editor {
-            width: 100%;
-            min-height: 100%;
+            width: min(980px, calc(100% - 52px));
+            min-height: calc(100% - 40px);
             background: var(--page-bg);
-            padding: 48px 96px;
+            padding: 56px 86px;
             box-sizing: border-box;
             line-height: 1.72;
             font-size: 17px;
             letter-spacing: 0.01em;
             outline: none;
+            border-radius: 22px;
+            margin: 0 auto;
+            box-shadow: var(--page-shadow);
+            border: 1px solid rgba(255, 255, 255, 0.75);
+            transition: box-shadow 220ms ease;
+            animation: page-rise 320ms ease-out;
+        }
+        #editor:focus {
+            box-shadow: 0 30px 70px rgba(15, 23, 42, 0.15);
         }
         @media (max-width: 1024px) {
+            #editorWrapper {
+                padding-top: 18px;
+            }
             #editor {
-                padding: 36px 24px;
+                width: calc(100% - 24px);
+                border-radius: 14px;
+                padding: 32px 22px;
             }
         }
         #editor h1 { font-size: 38px; margin: 32px 0 16px; font-weight: 600; }
-        #editor h2 { font-size: 30px; margin: 28px 0 14px; font-weight: 600; }
+        #editor h2 {
+            font-size: 30px;
+            margin: 32px 0 16px;
+            font-weight: 600;
+            padding-left: 12px;
+            border-left: 4px solid var(--accent-soft);
+        }
         #editor h3 { font-size: 24px; margin: 24px 0 12px; font-weight: 600; }
         #editor h4 { font-size: 20px; margin: 22px 0 12px; font-weight: 600; }
         #editor h5 { font-size: 18px; margin: 20px 0 10px; font-weight: 600; }
@@ -135,6 +179,13 @@
         }
         #editor strong { font-weight: 600; }
         #editor em { font-style: italic; }
+        #editor del { text-decoration: line-through; opacity: 0.78; }
+        #editor mark {
+            background: rgba(214, 69, 69, 0.18);
+            color: var(--text-color);
+            border-radius: 4px;
+            padding: 0 4px;
+        }
         #editor ul, #editor ol {
             margin: 16px 0;
             padding-left: 28px;
@@ -174,6 +225,35 @@
             line-height: 1.6;
             box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
         }
+        #editor pre code {
+            display: block;
+            counter-reset: code-line;
+        }
+        #editor pre code .code-line {
+            display: block;
+            padding-left: 54px;
+            position: relative;
+            min-height: 22px;
+        }
+        #editor pre code .code-line::before {
+            content: counter(code-line);
+            counter-increment: code-line;
+            position: absolute;
+            left: 16px;
+            color: var(--muted-color);
+            opacity: 0.8;
+            font-size: 12px;
+            min-width: 24px;
+            text-align: right;
+        }
+        #editor pre code .code-line.highlight {
+            background: rgba(255, 255, 255, 0.04);
+        }
+        #editor pre code .token.keyword { color: var(--code-keyword); }
+        #editor pre code .token.string { color: var(--code-string); }
+        #editor pre code .token.comment { color: var(--code-comment); font-style: italic; }
+        #editor pre code .token.number { color: var(--code-number); }
+        #editor pre code .token.type { color: var(--code-type); }
         #editor pre::before {
             content: attr(data-lang);
             position: absolute;
@@ -215,6 +295,16 @@
             border-top: 1px dashed var(--border-color);
             margin: 32px 0;
         }
+        @keyframes page-rise {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
         #editor a {
             color: var(--accent-color);
             text-decoration: none;
@@ -253,11 +343,89 @@
         #editor table th[data-align="right"] {
             text-align: right;
         }
+        #editor dl {
+            margin: 18px 0;
+        }
+        #editor dt {
+            margin-top: 10px;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+        #editor dd {
+            margin: 6px 0 12px 22px;
+            color: var(--muted-color);
+        }
         #editor img {
             max-width: 100%;
             border-radius: 12px;
             box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
             margin: 24px 0;
+        }
+        #editor .frontmatter {
+            margin: 18px 0 24px;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+            background: var(--page-bg);
+        }
+        #editor .frontmatter::before {
+            content: "Front Matter";
+            display: block;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--muted-color);
+            padding: 8px 12px;
+            background: var(--table-head-bg);
+            border-bottom: 1px solid var(--border-color);
+        }
+        #editor .frontmatter pre {
+            margin: 0;
+            padding: 14px 16px;
+            border-radius: 0;
+            background: transparent;
+            color: var(--text-color);
+            box-shadow: none;
+        }
+        #editor .math-inline {
+            font-family: "JetBrains Mono", "Fira Code", monospace;
+            padding: 1px 6px;
+            border-radius: 6px;
+            background: var(--inline-code-bg);
+            color: var(--inline-code-color);
+        }
+        #editor .math-block {
+            margin: 22px 0;
+            padding: 14px 16px;
+            border-radius: 12px;
+            background: rgba(17, 19, 26, 0.06);
+            border: 1px dashed var(--border-color);
+            font-family: "JetBrains Mono", "Fira Code", monospace;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        #editor .footnotes {
+            margin-top: 36px;
+            padding-top: 14px;
+            border-top: 1px dashed var(--border-color);
+        }
+        #editor .footnotes ol {
+            margin: 10px 0 0;
+            padding-left: 22px;
+        }
+        #editor .footnotes li {
+            margin: 8px 0;
+        }
+        #editor .footnote-ref {
+            margin-left: 2px;
+            font-size: 0.82em;
+            vertical-align: super;
+        }
+        #editor .footnote-backref {
+            margin-left: 8px;
+            font-size: 0.9em;
+            border-bottom: none;
         }
         #editor:empty::before {
             content: "开始输入 Markdown 内容…";
@@ -279,6 +447,26 @@
         let currentMarkdown = "";
         let qtBridge = null;
         let plainMode = false;
+        let plainLanguage = "";
+        let markdownMode = "typora";
+
+        function normalizeMarkdownMode(value) {
+            const normalized = (value || "").toString().trim().toLowerCase();
+            if (normalized === "commonmark" || normalized === "gfm" || normalized === "typora") {
+                return normalized;
+            }
+            return "typora";
+        }
+
+        function modeSupports(feature) {
+            if (markdownMode === "commonmark") {
+                return feature === "base";
+            }
+            if (markdownMode === "gfm") {
+                return feature === "base" || feature === "gfm";
+            }
+            return true;
+        }
 
         function applyThemePalette(palette) {
             if (!palette || typeof palette !== "object") return;
@@ -292,12 +480,25 @@
             });
         }
 
-        function setPlainMode(flag) {
+        function setPlainMode(flag, language) {
             plainMode = !!flag;
+            if (typeof language === "string") {
+                plainLanguage = language.trim().toLowerCase();
+            }
+            document.body.dataset.plainLang = plainLanguage || "";
             document.body.classList.toggle("plain-mode", plainMode);
+            // 重新渲染以匹配当前模式/语言，避免切换后内容为空或未更新。
+            syncFromMarkdown(currentMarkdown);
         }
 
-        setPlainMode(false);
+        function setMarkdownMode(mode) {
+            markdownMode = normalizeMarkdownMode(mode);
+            document.body.dataset.mdMode = markdownMode;
+            syncFromMarkdown(currentMarkdown);
+        }
+
+        setPlainMode(false, "");
+        setMarkdownMode("typora");
 
         function escapeHtml(text) {
             return (text || "")
@@ -314,15 +515,191 @@
             return trimmed.toLowerCase().replace(/[^a-z0-9\-\+\#]/g, "-");
         }
 
-        function formatInline(text) {
-            return escapeHtml(text)
+        const languageKeywordMap = {
+            python: ["and", "as", "assert", "break", "class", "continue", "def", "del", "elif", "else", "except", "finally", "for", "from", "global", "if", "import", "in", "is", "lambda", "nonlocal", "not", "or", "pass", "raise", "return", "try", "while", "with", "yield"],
+            c: ["auto", "break", "case", "char", "const", "continue", "default", "do", "double", "else", "enum", "extern", "float", "for", "goto", "if", "inline", "int", "long", "register", "restrict", "return", "short", "signed", "sizeof", "static", "struct", "switch", "typedef", "union", "unsigned", "void", "volatile", "while"],
+            cpp: ["alignas", "alignof", "and", "and_eq", "asm", "auto", "bitand", "bitor", "bool", "break", "case", "catch", "char", "char16_t", "char32_t", "class", "compl", "concept", "const", "consteval", "constexpr", "constinit", "const_cast", "continue", "co_await", "co_return", "co_yield", "decltype", "default", "delete", "do", "double", "dynamic_cast", "else", "enum", "explicit", "export", "extern", "false", "float", "for", "friend", "goto", "if", "inline", "int", "long", "mutable", "namespace", "new", "noexcept", "not", "not_eq", "nullptr", "operator", "or", "or_eq", "private", "protected", "public", "register", "reinterpret_cast", "requires", "return", "short", "signed", "sizeof", "static", "static_assert", "static_cast", "struct", "switch", "template", "this", "thread_local", "throw", "true", "try", "typedef", "typeid", "typename", "union", "unsigned", "using", "virtual", "void", "volatile", "wchar_t", "while", "xor", "xor_eq"],
+            go: ["break", "case", "chan", "const", "continue", "default", "defer", "else", "fallthrough", "for", "func", "go", "goto", "if", "import", "interface", "map", "package", "range", "return", "select", "struct", "switch", "type", "var"],
+            java: ["abstract", "assert", "boolean", "break", "byte", "case", "catch", "char", "class", "const", "continue", "default", "do", "double", "else", "enum", "extends", "final", "finally", "float", "for", "goto", "if", "implements", "import", "instanceof", "int", "interface", "long", "native", "new", "package", "private", "protected", "public", "return", "short", "static", "strictfp", "super", "switch", "synchronized", "this", "throw", "throws", "transient", "try", "void", "volatile", "while"],
+            javascript: ["break", "case", "catch", "class", "const", "continue", "debugger", "default", "delete", "do", "else", "enum", "export", "extends", "false", "finally", "for", "function", "if", "import", "in", "instanceof", "let", "new", "null", "return", "super", "switch", "this", "throw", "true", "try", "typeof", "var", "void", "while", "with", "yield"],
+            typescript: ["abstract", "any", "as", "asserts", "bigint", "boolean", "break", "case", "catch", "class", "const", "constructor", "continue", "declare", "default", "delete", "do", "else", "enum", "export", "extends", "false", "finally", "for", "from", "function", "get", "if", "implements", "import", "in", "infer", "instanceof", "interface", "is", "keyof", "let", "module", "namespace", "never", "new", "null", "number", "object", "of", "override", "package", "private", "protected", "public", "readonly", "require", "return", "set", "static", "string", "super", "switch", "symbol", "this", "throw", "true", "try", "type", "typeof", "undefined", "unique", "unknown", "var", "void", "while", "with", "yield"],
+            sql: ["select", "from", "where", "group", "by", "having", "order", "limit", "insert", "into", "values", "update", "set", "delete", "join", "left", "right", "inner", "outer", "on", "create", "table", "primary", "key", "foreign", "not", "null", "default", "unique", "alter", "drop", "index", "view", "as", "and", "or", "exists", "in", "between", "like", "union"],
+            shell: ["if", "then", "fi", "elif", "else", "for", "do", "done", "case", "esac", "function", "in", "while", "until", "select", "time"],
+            rust: ["as", "break", "const", "continue", "crate", "else", "enum", "extern", "false", "fn", "for", "if", "impl", "in", "let", "loop", "match", "mod", "move", "mut", "pub", "ref", "return", "self", "Self", "static", "struct", "super", "trait", "true", "type", "unsafe", "use", "where", "while"],
+            csharp: ["abstract", "as", "base", "bool", "break", "byte", "case", "catch", "char", "checked", "class", "const", "continue", "decimal", "default", "delegate", "do", "double", "else", "enum", "event", "explicit", "extern", "false", "finally", "fixed", "float", "for", "foreach", "goto", "if", "implicit", "in", "int", "interface", "internal", "is", "lock", "long", "namespace", "new", "null", "object", "operator", "out", "override", "params", "private", "protected", "public", "readonly", "ref", "return", "sbyte", "sealed", "short", "sizeof", "stackalloc", "static", "string", "struct", "switch", "this", "throw", "true", "try", "typeof", "uint", "ulong", "unchecked", "unsafe", "ushort", "using", "virtual", "void", "volatile", "while"],
+        };
+
+        const languageTypeMap = {
+            c: ["int", "long", "short", "float", "double", "char", "void", "size_t", "bool"],
+            cpp: ["int", "long", "short", "float", "double", "char", "void", "size_t", "bool", "std", "string", "vector", "map", "auto"],
+            go: ["string", "error", "byte", "rune", "int", "int64", "int32", "uint", "uint64", "uint32", "float32", "float64", "complex64", "complex128", "struct", "interface", "chan", "map"],
+            java: ["String", "Integer", "Long", "Double", "Float", "Boolean", "List", "Map", "Set", "void", "int", "long", "double", "float", "boolean", "char"],
+            javascript: ["string", "number", "boolean", "bigint", "symbol", "object", "undefined", "null"],
+            typescript: ["string", "number", "boolean", "bigint", "symbol", "object", "unknown", "any", "never", "void"],
+            sql: ["int", "integer", "smallint", "bigint", "varchar", "text", "date", "timestamp", "boolean", "numeric", "serial"],
+            rust: ["i32", "i64", "u32", "u64", "usize", "isize", "f32", "f64", "bool", "str", "String", "Vec", "Option", "Result"],
+            csharp: ["int", "long", "short", "float", "double", "decimal", "string", "bool", "object", "var"]
+        };
+
+        function languagePatterns(language) {
+            const lang = (language || "").toLowerCase();
+            if (!lang) return [];
+            const patterns = [];
+
+            if (lang === "sql") {
+                patterns.push({ regex: /--[^\n]*/g, className: "comment" });
+                patterns.push({ regex: /\/\*[\s\S]*?\*\//g, className: "comment" });
+            } else if (lang === "python" || lang === "shell" || lang === "bash" || lang === "sh") {
+                patterns.push({ regex: /#[^\n]*/g, className: "comment" });
+            } else {
+                patterns.push({ regex: /\/\/[^\n]*/g, className: "comment" });
+                patterns.push({ regex: /\/\*[\s\S]*?\*\//g, className: "comment" });
+            }
+
+            patterns.push({ regex: /"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/g, className: "string" });
+
+            const keywords = languageKeywordMap[lang];
+            if (keywords && keywords.length) {
+                const keywordRegex = new RegExp("\\b(" + keywords.join("|") + ")\\b", "g");
+                patterns.push({ regex: keywordRegex, className: "keyword" });
+            }
+
+            const types = languageTypeMap[lang];
+            if (types && types.length) {
+                const typeRegex = new RegExp("\\b(" + types.join("|") + ")\\b", "g");
+                patterns.push({ regex: typeRegex, className: "type" });
+            }
+
+            patterns.push({ regex: /\b0x[0-9a-fA-F]+\b|\b\d+(?:\.\d+)?\b/g, className: "number" });
+            return patterns;
+        }
+
+        function collectMatches(source, patterns) {
+            const matches = [];
+            patterns.forEach((pattern, priority) => {
+                if (!pattern || !pattern.regex)
+                    return;
+                const regex = new RegExp(pattern.regex.source, pattern.regex.flags);
+                let match;
+                while ((match = regex.exec(source)) !== null) {
+                    if (!match[0].length) {
+                        regex.lastIndex += 1;
+                        continue;
+                    }
+                    matches.push({
+                        start: match.index,
+                        end: match.index + match[0].length,
+                        className: pattern.className,
+                        priority
+                    });
+                }
+            });
+            return matches;
+        }
+
+        function applyMatches(source, matches) {
+            if (!matches.length)
+                return escapeHtml(source);
+
+            matches.sort((a, b) => {
+                if (a.start === b.start)
+                    return a.priority - b.priority;
+                return a.start - b.start;
+            });
+
+            let result = "";
+            let cursor = 0;
+            matches.forEach(match => {
+                if (match.start < cursor)
+                    return;
+                result += escapeHtml(source.slice(cursor, match.start));
+                result += '<span class="token ' + match.className + '">' + escapeHtml(source.slice(match.start, match.end)) + "</span>";
+                cursor = match.end;
+            });
+            result += escapeHtml(source.slice(cursor));
+            return result;
+        }
+
+        function highlightCode(source, language) {
+            const patterns = languagePatterns(language);
+            const highlighted = applyMatches(source || "", patterns);
+            const lines = highlighted.split("\n");
+            return lines.map(line => {
+                const content = line.length ? line : "&nbsp;";
+                return '<span class="code-line">' + content + "</span>";
+            }).join("\n");
+        }
+
+        function renderPlainCodeDocument(text, language) {
+            const normalized = normalizeLanguageName(language);
+            const highlighted = highlightCode(text || "", normalized);
+            const safeLang = escapeHtml(normalized || language || "");
+            const langAttr = safeLang.length ? ' data-lang="' + safeLang + '"' : "";
+            const classAttr = safeLang.length ? ' class="language-' + safeLang + '"' : "";
+            return "<pre" + langAttr + "><code" + classAttr + ">" + highlighted + "</code></pre>";
+        }
+
+        function renderPlainTextDocument(text) {
+            return '<pre class="plain-text">' + escapeHtml(text || "") + "</pre>";
+        }
+
+        function extractPlainText() {
+            const codeElem = editor.querySelector("pre code");
+            if (!codeElem)
+                return (editor.innerText || "").replace(/\r/g, "");
+            return (codeElem.textContent || "").replace(/\r/g, "");
+        }
+
+        function applyAutoLink(text) {
+            return text.replace(/(^|\s)(https?:\/\/[^\s<]+)/g, (all, prefix, url) => {
+                const safeUrl = url.replace(/[.,;!?]+$/, "");
+                const tail = url.slice(safeUrl.length);
+                return prefix + '<a href="' + safeUrl + '">' + safeUrl + "</a>" + tail;
+            });
+        }
+
+        function applyInlineMath(text) {
+            return text.replace(/\$(.+?)\$/g, (all, expr) => {
+                const safeExpr = escapeHtml(expr.trim());
+                return '<span class="math-inline" data-math="' + safeExpr + '">' + safeExpr + "</span>";
+            });
+        }
+
+        function applyFootnoteRefs(text, state) {
+            if (!modeSupports("typora")) return text;
+            return text.replace(/\[\^([^\]\s]+)\]/g, (all, id) => {
+                const normalized = id.trim();
+                if (!normalized.length) return all;
+                if (!state.footnoteRefs.has(normalized)) {
+                    state.footnoteRefs.set(normalized, state.footnoteOrder.length + 1);
+                    state.footnoteOrder.push(normalized);
+                }
+                const index = state.footnoteRefs.get(normalized);
+                const safeId = escapeHtml(normalized);
+                return '<sup class="footnote-ref" data-footnote-id="' + safeId + '"><a href="#fn-' + safeId + '">[' + index + "]</a></sup>";
+            });
+        }
+
+        function formatInline(text, state = null) {
+            let html = escapeHtml(text)
                 .replace(/!\[(.*?)\]\((.+?)\)/g, '<img src="$2" alt="$1">')
                 .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
                 .replace(/\*(.+?)\*/g, "<em>$1</em>")
-                .replace(/~~(.+?)~~/g, "<del>$1</del>")
-                .replace(/==(.+?)==/g, "<mark>$1</mark>")
                 .replace(/`([^`]+)`/g, "<code>$1</code>")
                 .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2">$1</a>');
+
+            if (modeSupports("gfm")) {
+                html = html.replace(/~~(.+?)~~/g, "<del>$1</del>");
+                html = applyAutoLink(html);
+            }
+            if (modeSupports("typora")) {
+                html = html.replace(/==(.+?)==/g, "<mark>$1</mark>");
+                html = applyInlineMath(html);
+                if (state) {
+                    html = applyFootnoteRefs(html, state);
+                }
+            }
+            return html;
         }
 
         function splitTableRow(line) {
@@ -404,13 +781,172 @@
             return html;
         }
 
+        function parseFootnoteDefinitions(lines) {
+            const defs = new Map();
+            const filtered = [];
+
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i] || "";
+                const match = line.match(/^\[\^([^\]\s]+)\]:\s*(.*)$/);
+                if (!match) {
+                    filtered.push(line);
+                    continue;
+                }
+
+                const id = (match[1] || "").trim();
+                if (!id.length) {
+                    filtered.push(line);
+                    continue;
+                }
+
+                const chunks = [match[2] || ""];
+                while (i + 1 < lines.length) {
+                    const next = lines[i + 1] || "";
+                    if (/^\s{2,}\S/.test(next)) {
+                        chunks.push(next.replace(/^\s{2,}/, ""));
+                        i++;
+                        continue;
+                    }
+                    break;
+                }
+                defs.set(id, chunks.join("\n").trim());
+            }
+
+            return { lines: filtered, defs };
+        }
+
+        function renderFootnotes(state) {
+            if (!state || !state.footnoteOrder.length) return "";
+            let html = '<section class="footnotes"><ol>';
+            state.footnoteOrder.forEach(id => {
+                const safeId = escapeHtml(id);
+                const content = state.footnoteDefs.get(id) || "";
+                html += '<li id="fn-' + safeId + '">';
+                html += formatInline(content, null);
+                html += '<a class="footnote-backref" href="#">↩</a>';
+                html += "</li>";
+            });
+            html += "</ol></section>";
+            return html;
+        }
+
+        function parseFrontMatter(lines) {
+            if (!modeSupports("typora") || lines.length < 3) {
+                return { lines, block: "" };
+            }
+            if ((lines[0] || "").trim() !== "---") {
+                return { lines, block: "" };
+            }
+
+            let end = -1;
+            for (let i = 1; i < lines.length; i++) {
+                if ((lines[i] || "").trim() === "---") {
+                    end = i;
+                    break;
+                }
+            }
+            if (end < 1) {
+                return { lines, block: "" };
+            }
+
+            const payload = lines.slice(1, end).join("\n");
+            const rest = lines.slice(end + 1);
+            const block = '<section class="frontmatter" data-frontmatter="1"><pre><code class="language-yaml">'
+                + escapeHtml(payload)
+                + "</code></pre></section>";
+            return { lines: rest, block };
+        }
+
+        function parseBlockquoteLine(line) {
+            const match = (line || "").match(/^\s*>\s?(.*)$/);
+            return match ? match[1] : null;
+        }
+
+        function parseRawHtmlBlock(lines, startIndex) {
+            const firstLine = lines[startIndex] || "";
+            const trimmed = firstLine.trim();
+            if (!trimmed.length || !trimmed.startsWith("<")) {
+                return null;
+            }
+
+            if (/^<!--/.test(trimmed)) {
+                const blocks = [firstLine];
+                if (/-->\s*$/.test(trimmed)) {
+                    return { html: blocks.join("\n"), endIndex: startIndex };
+                }
+                let end = startIndex;
+                for (let i = startIndex + 1; i < lines.length; i++) {
+                    blocks.push(lines[i] || "");
+                    end = i;
+                    if (/-->\s*$/.test(lines[i] || "")) {
+                        break;
+                    }
+                }
+                return { html: blocks.join("\n"), endIndex: end };
+            }
+
+            const tagMatch = trimmed.match(/^<([A-Za-z][A-Za-z0-9:_-]*)(\s[^>]*)?>\s*$/);
+            const oneLineTagMatch = trimmed.match(/^<([A-Za-z][A-Za-z0-9:_-]*)(\s[^>]*)?>[\s\S]*<\/\1>\s*$/);
+            const standaloneNode = /^<\/?[A-Za-z][A-Za-z0-9:_-]*(\s[^>]*)?\/?>\s*$/.test(trimmed);
+
+            if (oneLineTagMatch || /\/>\s*$/.test(trimmed)) {
+                return { html: firstLine, endIndex: startIndex };
+            }
+
+            if (!tagMatch && !standaloneNode) {
+                return null;
+            }
+
+            if (standaloneNode && !tagMatch) {
+                return { html: firstLine, endIndex: startIndex };
+            }
+
+            const tag = tagMatch ? tagMatch[1] : "";
+            if (!tag.length) {
+                return { html: firstLine, endIndex: startIndex };
+            }
+
+            const closeRegex = new RegExp("</" + tag + "\\s*>", "i");
+            const blocks = [firstLine];
+            if (closeRegex.test(trimmed)) {
+                return { html: blocks.join("\n"), endIndex: startIndex };
+            }
+
+            let end = startIndex;
+            for (let i = startIndex + 1; i < lines.length; i++) {
+                const line = lines[i] || "";
+                blocks.push(line);
+                end = i;
+                if (closeRegex.test(line)) {
+                    break;
+                }
+            }
+
+            return { html: blocks.join("\n"), endIndex: end };
+        }
+
         function markdownToHtml(md) {
-            const lines = (md || "").split(/\r?\n/);
-            let html = "";
+            const sourceLines = (md || "").split(/\r?\n/);
+            const frontMatterParsed = parseFrontMatter(sourceLines);
+            const footnoteParsed = modeSupports("typora")
+                ? parseFootnoteDefinitions(frontMatterParsed.lines)
+                : { lines: frontMatterParsed.lines, defs: new Map() };
+            const lines = footnoteParsed.lines;
+            const inlineState = {
+                footnoteDefs: footnoteParsed.defs,
+                footnoteRefs: new Map(),
+                footnoteOrder: []
+            };
+            let html = frontMatterParsed.block || "";
             let currentList = null; // "ul" | "ol" | "task" | null
             let inCode = false;
-            const fencePattern = /^\s*```(.*)$/;
+            let codeFence = "```";
+            let inMathBlock = false;
+            let mathLines = [];
+            const fencePattern = /^\s*(```+|~~~+)(.*)$/;
             const hrPattern = /^\s*(?:(\*\s*){3,}|(-\s*){3,}|(_\s*){3,})$/;
+            const setextH1Pattern = /^\s*=+\s*$/;
+            const setextH2Pattern = /^\s*-+\s*$/;
 
             const closeList = () => {
                 if (!currentList) return;
@@ -421,11 +957,59 @@
 
             for (let i = 0; i < lines.length; i++) {
                 const line = lines[i] || "";
+
+                if (!inCode && !inMathBlock) {
+                    const nextLine = i + 1 < lines.length ? (lines[i + 1] || "") : "";
+                    if (line.trim().length && setextH1Pattern.test(nextLine)) {
+                        closeList();
+                        html += "<h1>" + formatInline(line.trim(), inlineState) + "</h1>";
+                        i += 1;
+                        continue;
+                    }
+                    if (line.trim().length && setextH2Pattern.test(nextLine)) {
+                        closeList();
+                        html += "<h2>" + formatInline(line.trim(), inlineState) + "</h2>";
+                        i += 1;
+                        continue;
+                    }
+                }
+
+                if (modeSupports("typora") && /^\s*\$\$\s*$/.test(line)) {
+                    closeList();
+                    if (!inMathBlock) {
+                        inMathBlock = true;
+                        mathLines = [];
+                    } else {
+                        const expr = mathLines.join("\n").trim();
+                        const safeExpr = escapeHtml(expr);
+                        html += '<div class="math-block" data-math="' + safeExpr + '">' + safeExpr + "</div>";
+                        inMathBlock = false;
+                        mathLines = [];
+                    }
+                    continue;
+                }
+
+                if (inMathBlock) {
+                    mathLines.push(line);
+                    continue;
+                }
+
+                if (!inCode && !inMathBlock) {
+                    const htmlBlock = parseRawHtmlBlock(lines, i);
+                    if (htmlBlock) {
+                        closeList();
+                        html += htmlBlock.html;
+                        i = htmlBlock.endIndex;
+                        continue;
+                    }
+                }
+
                 const fenceMatch = line.match(fencePattern);
                 if (fenceMatch) {
                     closeList();
                     if (!inCode) {
-                        const langRaw = (fenceMatch[1] || "").trim();
+                        codeFence = fenceMatch[1] || "```";
+                        const langRaw = (fenceMatch[2] || "").trim();
                         const normalizedClass = normalizeLanguageName(langRaw);
                         const langAttr = langRaw.length
                             ? ' data-lang="' + escapeHtml(langRaw) + '"'
@@ -433,7 +1017,8 @@
                         const classAttr = normalizedClass.length
                             ? ' class="language-' + escapeHtml(normalizedClass) + '"'
                             : "";
-                        html += "<pre" + langAttr + "><code" + classAttr + ">";
+                        const fenceAttr = ' data-fence="' + (codeFence.startsWith("~~~") ? "~~~" : "```") + '"';
+                        html += "<pre" + langAttr + fenceAttr + "><code" + classAttr + ">";
                         inCode = true;
                     } else {
                         html += "</code></pre>";
@@ -446,7 +1031,7 @@
                     continue;
                 }
 
-                if (looksLikeTableHeader(line) && i + 1 < lines.length && isTableSeparator(lines[i + 1])) {
+                if (modeSupports("gfm") && looksLikeTableHeader(line) && i + 1 < lines.length && isTableSeparator(lines[i + 1])) {
                     closeList();
                     const headerCells = splitTableRow(line);
                     const alignmentData = parseTableAlignments(lines[i + 1], headerCells.length);
@@ -467,7 +1052,7 @@
                     continue;
                 }
 
-                const taskMatch = line.match(/^\s*[-*+]\s+\[( |x|X)\]\s+(.*)$/);
+                const taskMatch = modeSupports("gfm") ? line.match(/^\s*[-*+]\s+\[( |x|X)\]\s+(.*)$/) : null;
                 if (taskMatch) {
                     if (currentList !== "task") {
                         closeList();
@@ -475,19 +1060,20 @@
                         currentList = "task";
                     }
                     const checked = taskMatch[1].toLowerCase() === "x";
-                    const content = formatInline(taskMatch[2]);
+                    const content = formatInline(taskMatch[2], inlineState);
                     html += '<li class="task-list-item"><input type="checkbox" disabled' + (checked ? " checked" : "") + "> " + content + "</li>";
                     continue;
                 }
 
                 const olMatch = line.match(/^\s*\d+\.\s+(.*)$/);
                 if (olMatch) {
+                    const start = parseInt(line.trim().match(/^(\d+)\./)[1], 10);
                     if (currentList !== "ol") {
                         closeList();
-                        html += "<ol>";
+                        html += start > 1 ? ('<ol start="' + start + '">') : "<ol>";
                         currentList = "ol";
                     }
-                    html += "<li>" + formatInline(olMatch[1]) + "</li>";
+                    html += "<li>" + formatInline(olMatch[1], inlineState) + "</li>";
                     continue;
                 }
 
@@ -498,31 +1084,65 @@
                         html += "<ul>";
                         currentList = "ul";
                     }
-                    html += "<li>" + formatInline(ulMatch[1]) + "</li>";
+                    html += "<li>" + formatInline(ulMatch[1], inlineState) + "</li>";
                     continue;
                 } else {
                     closeList();
                 }
 
-                if (/^######\s+/.test(line)) html += "<h6>" + formatInline(line.replace(/^######\s+/, "")) + "</h6>";
-                else if (/^#####\s+/.test(line)) html += "<h5>" + formatInline(line.replace(/^#####\s+/, "")) + "</h5>";
-                else if (/^####\s+/.test(line)) html += "<h4>" + formatInline(line.replace(/^####\s+/, "")) + "</h4>";
-                else if (/^###\s+/.test(line)) html += "<h3>" + formatInline(line.replace(/^###\s+/, "")) + "</h3>";
-                else if (/^##\s+/.test(line)) html += "<h2>" + formatInline(line.replace(/^##\s+/, "")) + "</h2>";
-                else if (/^#\s+/.test(line)) html += "<h1>" + formatInline(line.replace(/^#\s+/, "")) + "</h1>";
-                else if (/^>\s+/.test(line)) {
+                if (modeSupports("typora") && i + 1 < lines.length && /^\s*:\s+/.test(lines[i + 1] || "")) {
                     closeList();
-                    html += "<blockquote>" + formatInline(line.replace(/^>\s+/, "")) + "</blockquote>";
+                    html += "<dl><dt>" + formatInline(line.trim(), inlineState) + "</dt>";
+                    while (i + 1 < lines.length && /^\s*:\s+/.test(lines[i + 1] || "")) {
+                        const defLine = (lines[i + 1] || "").replace(/^\s*:\s+/, "");
+                        html += "<dd>" + formatInline(defLine, inlineState) + "</dd>";
+                        i += 1;
+                    }
+                    html += "</dl>";
+                    continue;
+                }
+
+                if (/^######\s+/.test(line)) html += "<h6>" + formatInline(line.replace(/^######\s+/, ""), inlineState) + "</h6>";
+                else if (/^#####\s+/.test(line)) html += "<h5>" + formatInline(line.replace(/^#####\s+/, ""), inlineState) + "</h5>";
+                else if (/^####\s+/.test(line)) html += "<h4>" + formatInline(line.replace(/^####\s+/, ""), inlineState) + "</h4>";
+                else if (/^###\s+/.test(line)) html += "<h3>" + formatInline(line.replace(/^###\s+/, ""), inlineState) + "</h3>";
+                else if (/^##\s+/.test(line)) html += "<h2>" + formatInline(line.replace(/^##\s+/, ""), inlineState) + "</h2>";
+                else if (/^#\s+/.test(line)) html += "<h1>" + formatInline(line.replace(/^#\s+/, ""), inlineState) + "</h1>";
+                else if (/^\s*>\s?/.test(line)) {
+                    closeList();
+                    const quoteLines = [];
+                    while (i < lines.length) {
+                        const content = parseBlockquoteLine(lines[i]);
+                        if (content === null) break;
+                        quoteLines.push(content);
+                        i += 1;
+                    }
+                    i -= 1;
+                    const quoteHtml = quoteLines.map(quoteLine => {
+                        if (!quoteLine.trim().length) return "<p><br/></p>";
+                        return "<p>" + formatInline(quoteLine, inlineState) + "</p>";
+                    }).join("");
+                    html += "<blockquote>" + quoteHtml + "</blockquote>";
                 }
                 else if (line.trim() === "") {
                     closeList();
                     html += "<p><br/></p>";
                 }
-                else html += "<p>" + formatInline(line) + "</p>";
+                else html += "<p>" + formatInline(line, inlineState) + "</p>";
             }
 
             closeList();
-            if (inCode) html += "</pre>";
+            if (inCode) html += "</code></pre>";
+            if (inMathBlock) {
+                const expr = mathLines.join("\n").trim();
+                if (expr.length) {
+                    const safeExpr = escapeHtml(expr);
+                    html += '<div class="math-block" data-math="' + safeExpr + '">' + safeExpr + "</div>";
+                }
+            }
+            if (modeSupports("typora")) {
+                html += renderFootnotes(inlineState);
+            }
             return html;
         }
 
@@ -595,14 +1215,31 @@
             case "I":
                 return "*" + childText() + "*";
             case "DEL":
-                return "~~" + childText() + "~~";
+                return modeSupports("gfm") ? ("~~" + childText() + "~~") : childText();
             case "MARK":
-                return "==" + childText() + "==";
+                return modeSupports("typora") ? ("==" + childText() + "==") : childText();
             case "CODE":
                 return "`" + childText() + "`";
+            case "SPAN": {
+                if (node.classList.contains("math-inline") && modeSupports("typora")) {
+                    const expr = node.getAttribute("data-math") || node.textContent || "";
+                    return "$" + expr + "$";
+                }
+                return childText();
+            }
+            case "SUP": {
+                if (node.classList.contains("footnote-ref") && modeSupports("typora")) {
+                    const id = node.getAttribute("data-footnote-id") || "";
+                    return id.length ? ("[^" + id + "]") : childText();
+                }
+                return childText();
+            }
             case "A": {
                 const href = node.getAttribute("href") || "";
                 const text = childText().trim();
+                if (modeSupports("gfm") && text === href && /^https?:\/\//.test(href)) {
+                    return href;
+                }
                 return "[" + text + "](" + href + ")";
             }
             case "IMG": {
@@ -625,11 +1262,21 @@
             const container = document.createElement("div");
             container.innerHTML = html;
             const lines = [];
+            const footnoteDefs = [];
+            const rawBlockTags = new Set(["DIV", "SECTION", "ARTICLE", "ASIDE", "HEADER", "FOOTER", "NAV", "DETAILS", "SUMMARY", "FIGURE", "FIGCAPTION", "CENTER"]);
 
             const pushBlank = () => {
                 if (lines.length && lines[lines.length - 1] !== "") {
                     lines.push("");
                 }
+            };
+
+            const isEditorInternalRawNode = (node) => {
+                if (!node || node.nodeType !== Node.ELEMENT_NODE) return false;
+                if (node.nodeName === "DIV" && node.classList.contains("math-block")) return true;
+                if (node.nodeName === "SECTION" && node.classList.contains("frontmatter")) return true;
+                if (node.nodeName === "SECTION" && node.classList.contains("footnotes")) return true;
+                return false;
             };
 
             function handleList(node, ordered, isTask) {
@@ -683,18 +1330,43 @@
                     break;
                 }
                 case "BLOCKQUOTE": {
-                    const text = inlineChildrenToMarkdown(node).trim();
-                    const blockLines = text.split(/\r?\n/);
+                    const blockLines = [];
+                    Array.from(node.childNodes).forEach(child => {
+                        if (child.nodeType === Node.ELEMENT_NODE && child.nodeName === "P") {
+                            const line = inlineChildrenToMarkdown(child).trim();
+                            blockLines.push(line);
+                            return;
+                        }
+                        const line = inlineToMarkdown(child).trim();
+                        blockLines.push(line);
+                    });
+                    if (!blockLines.length) {
+                        blockLines.push("");
+                    }
                     blockLines.forEach(l => lines.push("> " + l));
                     pushBlank();
                     break;
                 }
                 case "PRE": {
                     const lang = (node.getAttribute("data-lang") || "").trim();
+                    const fence = (node.getAttribute("data-fence") || "```").trim() === "~~~" ? "~~~" : "```";
                     const code = node.textContent.replace(/\r?\n$/, "");
-                    lines.push(lang.length ? "```" + lang : "```");
+                    lines.push(lang.length ? (fence + lang) : fence);
                     lines.push(code);
-                    lines.push("```");
+                    lines.push(fence);
+                    pushBlank();
+                    break;
+                }
+                case "DIV": {
+                    if (node.classList.contains("math-block") && modeSupports("typora")) {
+                        const expr = (node.getAttribute("data-math") || node.textContent || "").replace(/\r/g, "").trim();
+                        lines.push("$$");
+                        lines.push(expr);
+                        lines.push("$$");
+                        pushBlank();
+                        break;
+                    }
+                    lines.push(node.outerHTML);
                     pushBlank();
                     break;
                 }
@@ -718,12 +1390,70 @@
                     }
                     break;
                 }
+                case "DL": {
+                    if (modeSupports("typora")) {
+                        const terms = Array.from(node.querySelectorAll(":scope > dt"));
+                        terms.forEach(dt => {
+                            const term = inlineChildrenToMarkdown(dt).trim();
+                            if (!term.length) return;
+                            lines.push(term);
+                            let next = dt.nextElementSibling;
+                            while (next && next.nodeName === "DD") {
+                                const def = inlineChildrenToMarkdown(next).trim();
+                                lines.push(": " + def);
+                                next = next.nextElementSibling;
+                            }
+                            pushBlank();
+                        });
+                        break;
+                    }
+                    Array.from(node.childNodes).forEach(walk);
+                    break;
+                }
+                case "SECTION": {
+                    if (node.classList.contains("frontmatter") && modeSupports("typora")) {
+                        const codeNode = node.querySelector("pre code");
+                        const payload = codeNode ? (codeNode.textContent || "").replace(/\r/g, "") : "";
+                        lines.push("---");
+                        if (payload.length) {
+                            lines.push(payload);
+                        }
+                        lines.push("---");
+                        pushBlank();
+                        break;
+                    }
+                    if (node.classList.contains("footnotes") && modeSupports("typora")) {
+                        const items = Array.from(node.querySelectorAll("li[id^='fn-']"));
+                        items.forEach(item => {
+                            const id = (item.id || "").replace(/^fn-/, "").trim();
+                            if (!id.length) return;
+                            const clone = item.cloneNode(true);
+                            const backRef = clone.querySelector(".footnote-backref");
+                            if (backRef) backRef.remove();
+                            const text = inlineChildrenToMarkdown(clone).trim();
+                            footnoteDefs.push("[^" + id + "]: " + text);
+                        });
+                        break;
+                    }
+                    lines.push(node.outerHTML);
+                    pushBlank();
+                    break;
+                }
                 default:
+                    if (!isEditorInternalRawNode(node) && rawBlockTags.has(node.nodeName)) {
+                        lines.push(node.outerHTML);
+                        pushBlank();
+                        break;
+                    }
                     Array.from(node.childNodes).forEach(walk);
                 }
             }
 
             Array.from(container.childNodes).forEach(walk);
+            if (modeSupports("typora") && footnoteDefs.length) {
+                pushBlank();
+                lines.push(...footnoteDefs);
+            }
             return lines.join("\n").replace(/\n{3,}/g, "\n\n").trim();
         }
 
@@ -861,7 +1591,14 @@
         function syncFromMarkdown(markdown) {
             suppressChange = true;
             currentMarkdown = markdown || "";
-            editor.innerHTML = markdownToHtml(currentMarkdown);
+            if (plainMode) {
+                editor.innerHTML = plainLanguage
+                    ? renderPlainCodeDocument(currentMarkdown, plainLanguage)
+                    : renderPlainTextDocument(currentMarkdown);
+            } else {
+                editor.innerHTML = markdownToHtml(currentMarkdown);
+            }
+            decorateCodeBlocks();
             setTimeout(() => {
                 suppressChange = false;
                 scheduleCursorState();
@@ -870,7 +1607,7 @@
 
         editor.addEventListener("input", () => {
             if (suppressChange) return;
-            const md = htmlToMarkdown(editor.innerHTML);
+            const md = plainMode ? extractPlainText() : htmlToMarkdown(editor.innerHTML);
             currentMarkdown = md;
             if (qtBridge) qtBridge.notifyContentChanged(md);
             scheduleCursorState();
@@ -893,9 +1630,10 @@
 
         window.TyporaEditor = {
             setMarkdown: syncFromMarkdown,
-            getMarkdown: () => htmlToMarkdown(editor.innerHTML),
+            getMarkdown: () => plainMode ? extractPlainText() : htmlToMarkdown(editor.innerHTML),
             applyTheme: applyThemePalette,
             setPlainMode: setPlainMode,
+            setMarkdownMode: setMarkdownMode,
             execCommand: payload => {
                 if (!payload) return;
                 if (typeof payload === "string") {
@@ -941,13 +1679,30 @@
                 }
 
                 if (notifyChange) {
-                    const md = htmlToMarkdown(editor.innerHTML);
+                    const md = plainMode ? extractPlainText() : htmlToMarkdown(editor.innerHTML);
                     currentMarkdown = md;
                     if (qtBridge) qtBridge.notifyContentChanged(md);
                 }
                 scheduleCursorState();
             }
         };
+
+        function decorateCodeBlocks() {
+            const blocks = editor.querySelectorAll("pre code");
+            blocks.forEach(codeElem => {
+                const raw = codeElem.textContent || "";
+                const classAttr = codeElem.getAttribute("class") || "";
+                const dataLang = codeElem.getAttribute("data-lang") || "";
+                const classMatch = classAttr.match(/language-([a-z0-9\-\+\#]+)/i);
+                const lang = normalizeLanguageName(dataLang || (classMatch ? classMatch[1] : ""));
+                const highlighted = highlightCode(raw.replace(/\r/g, ""), lang);
+                codeElem.innerHTML = highlighted;
+                const pre = codeElem.parentElement;
+                if (pre && lang.length) {
+                    pre.setAttribute("data-lang", lang);
+                }
+            });
+        }
     </script>
 </body>
 </html>

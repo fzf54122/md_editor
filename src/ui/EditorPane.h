@@ -22,6 +22,8 @@ public:
     void setMarkdown(const QString &markdown);
     void applyTheme(ThemeId theme);
     void setPlainMode(bool enabled);
+    void setPlainLanguage(const QString &language);
+    void setMarkdownMode(const QString &mode);
     void executeCommand(const QString &command, const QVariantMap &extra = QVariantMap());
     void triggerPageAction(QWebEnginePage::WebAction action);
 
@@ -35,6 +37,8 @@ private:
     void applyPendingTheme();
     void applyPendingMarkdown();
     void applyPendingPlainMode();
+    void applyPendingPlainLanguage();
+    void applyPendingMarkdownMode();
 
     QWebEngineView *webView{};
     QWebChannel *webChannel{};
@@ -43,4 +47,7 @@ private:
     QString pendingMarkdown;
     QVariantMap pendingEditorTheme;
     bool currentPlainTextMode{false};
+    QString pendingPlainLanguage;
+    QString currentPlainLanguage;
+    QString currentMarkdownMode{QStringLiteral("typora")};
 };

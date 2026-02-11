@@ -33,6 +33,10 @@ struct MenuActions
     QAction *focusModeAction{};
     QAction *outlineViewAction{};
 
+    QAction *commonMarkModeAction{};
+    QAction *gfmModeAction{};
+    QAction *typoraModeAction{};
+
     QAction *lightThemeAction{};
     QAction *darkThemeAction{};
     QAction *solarizedThemeAction{};

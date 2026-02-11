@@ -69,6 +69,17 @@ MenuActions MenuBuilder::build(QMainWindow *owner)
     actions.focusModeAction->setCheckable(true);
     actions.outlineViewAction = viewMenu->addAction("显示大纲");
 
+    QMenu *modeMenu = menuBar->addMenu("兼容");
+    QActionGroup *modeGroup = new QActionGroup(owner);
+    modeGroup->setExclusive(true);
+    actions.commonMarkModeAction = modeMenu->addAction("CommonMark");
+    actions.gfmModeAction = modeMenu->addAction("GFM");
+    actions.typoraModeAction = modeMenu->addAction("Typora 扩展");
+    for (QAction *action : {actions.commonMarkModeAction, actions.gfmModeAction, actions.typoraModeAction}) {
+        action->setCheckable(true);
+        action->setActionGroup(modeGroup);
+    }
+
     QMenu *themeMenu = menuBar->addMenu("主题");
     QActionGroup *themeGroup = new QActionGroup(owner);
     themeGroup->setExclusive(true);
