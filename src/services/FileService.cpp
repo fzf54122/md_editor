@@ -45,31 +45,76 @@ QString FileService::languageHintForPath(const QString &path)
     if (path.isEmpty())
         return QString();
 
-    const QString ext = QFileInfo(path).suffix().toLower();
+    const QFileInfo info(path);
+    const QString ext = info.suffix().toLower();
+    const QString fileName = info.fileName().toLower();
+
+    if (fileName == QStringLiteral("dockerfile"))
+        return QStringLiteral("dockerfile");
+    if (fileName == QStringLiteral("makefile"))
+        return QStringLiteral("makefile");
+    if (fileName == QStringLiteral("cmakelists.txt"))
+        return QStringLiteral("cmake");
+    if (fileName == QStringLiteral("requirements.txt"))
+        return QStringLiteral("text");
+    if (fileName == QStringLiteral(".gitignore") || fileName == QStringLiteral(".dockerignore"))
+        return QStringLiteral("text");
+
     static const QHash<QString, QString> mapping = {
         { "py", "python" },
+        { "pyi", "python" },
+        { "pyx", "python" },
         { "c", "c" },
         { "h", "c" },
         { "cpp", "cpp" },
         { "cc", "cpp" },
         { "cxx", "cpp" },
         { "hpp", "cpp" },
+        { "hh", "cpp" },
+        { "hxx", "cpp" },
         { "go", "go" },
         { "java", "java" },
         { "js", "javascript" },
+        { "mjs", "javascript" },
+        { "cjs", "javascript" },
+        { "jsx", "javascript" },
         { "ts", "typescript" },
         { "tsx", "tsx" },
         { "sql", "sql" },
         { "json", "json" },
+        { "jsonc", "json" },
+        { "json5", "json" },
         { "yml", "yaml" },
         { "yaml", "yaml" },
         { "toml", "toml" },
         { "ini", "ini" },
+        { "cfg", "ini" },
+        { "conf", "ini" },
         { "sh", "shell" },
         { "bash", "shell" },
         { "zsh", "shell" },
+        { "fish", "shell" },
+        { "ps1", "powershell" },
         { "rs", "rust" },
-        { "cs", "csharp" }
+        { "cs", "csharp" },
+        { "kt", "kotlin" },
+        { "kts", "kotlin" },
+        { "swift", "swift" },
+        { "php", "php" },
+        { "rb", "ruby" },
+        { "lua", "lua" },
+        { "md", "markdown" },
+        { "markdown", "markdown" },
+        { "rst", "rst" },
+        { "xml", "xml" },
+        { "html", "html" },
+        { "htm", "html" },
+        { "css", "css" },
+        { "scss", "css" },
+        { "less", "css" },
+        { "vue", "vue" },
+        { "txt", "text" },
+        { "log", "text" }
     };
 
     return mapping.value(ext);

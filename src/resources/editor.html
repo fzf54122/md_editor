@@ -142,18 +142,31 @@
                 width: 100%;
                 padding: 24px 16px;
             }
+            #editor [align="center"] > p.hero-subtitle {
+                font-size: 22px;
+            }
+            #editor [align="center"] > p.lang-switch,
+            #editor [align="center"] > p.quick-links {
+                font-size: 16px;
+            }
         }
-        #editor h1 { font-size: 38px; margin: 32px 0 16px; font-weight: 600; }
+        #editor h1 {
+            font-size: 42px;
+            margin: 8px 0 20px;
+            font-weight: 650;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+            scroll-margin-top: 18px;
+        }
         #editor h2 {
-            font-size: 30px;
-            margin: 32px 0 16px;
-            font-weight: 600;
-            padding-left: 12px;
-            border-left: 4px solid var(--accent-soft);
+            font-size: 32px;
+            margin: 36px 0 16px;
+            font-weight: 650;
+            scroll-margin-top: 18px;
         }
-        #editor h3 { font-size: 24px; margin: 24px 0 12px; font-weight: 600; }
-        #editor h4 { font-size: 20px; margin: 22px 0 12px; font-weight: 600; }
-        #editor h5 { font-size: 18px; margin: 20px 0 10px; font-weight: 600; }
+        #editor h3 { font-size: 24px; margin: 24px 0 12px; font-weight: 600; scroll-margin-top: 18px; }
+        #editor h4 { font-size: 20px; margin: 22px 0 12px; font-weight: 600; scroll-margin-top: 18px; }
+        #editor h5 { font-size: 18px; margin: 20px 0 10px; font-weight: 600; scroll-margin-top: 18px; }
         #editor h6 {
             font-size: 16px;
             margin: 18px 0 8px;
@@ -161,6 +174,7 @@
             color: var(--muted-color);
             text-transform: uppercase;
             letter-spacing: 0.08em;
+            scroll-margin-top: 18px;
         }
         #editor p {
             margin: 16px 0;
@@ -204,16 +218,16 @@
         }
         #editor pre {
             position: relative;
-            margin: 24px 0;
-            padding: 42px 20px 20px;
-            border-radius: 18px;
+            margin: 20px 0;
+            padding: 26px 16px 14px;
+            border-radius: 10px;
             overflow: auto;
             background: var(--code-block-bg);
             color: var(--code-block-color);
             font-family: "JetBrains Mono", "Fira Code", monospace;
-            font-size: 15px;
-            line-height: 1.6;
-            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+            font-size: 14px;
+            line-height: 1.55;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
         }
         #editor pre code {
             display: block;
@@ -245,8 +259,8 @@
         #editor pre::before {
             content: attr(data-lang);
             position: absolute;
-            top: 10px;
-            right: 16px;
+            top: 6px;
+            right: 10px;
             font-size: 11px;
             font-weight: 600;
             letter-spacing: 0.08em;
@@ -341,6 +355,46 @@
         }
         #editor [align="center"] {
             text-align: center;
+            max-width: 1040px;
+            margin: 0 auto;
+        }
+        #editor [align="center"] > p {
+            margin: 12px 0;
+            line-height: 1.68;
+        }
+        #editor [align="center"] > p.hero-subtitle {
+            font-size: 34px;
+            font-weight: 650;
+            margin-top: 14px;
+            margin-bottom: 12px;
+            letter-spacing: 0.01em;
+        }
+        #editor [align="center"] > p.lang-switch {
+            margin-top: 2px;
+            margin-bottom: 16px;
+            font-size: 30px;
+        }
+        #editor [align="center"] > p.badge-row {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin: 10px 0 16px;
+        }
+        #editor [align="center"] > p.badge-row img {
+            margin: 0;
+            border-radius: 6px;
+            box-shadow: none;
+        }
+        #editor [align="center"] > p.quick-links {
+            margin-top: 8px;
+            margin-bottom: 16px;
+            font-size: 28px;
+            line-height: 1.8;
+        }
+        #editor [align="center"] > p.quick-links a {
+            font-weight: 500;
+            margin: 0 2px;
         }
         #editor [align="right"] {
             text-align: right;
@@ -348,6 +402,13 @@
         #editor [align="center"] table {
             margin-left: auto;
             margin-right: auto;
+        }
+        #editor [align="center"] a {
+            color: #0f62c9;
+            border-bottom-color: rgba(15, 98, 201, 0.32);
+        }
+        #editor [align="center"] a:hover {
+            border-bottom-color: #0f62c9;
         }
         #editor .frontmatter {
             margin: 18px 0 24px;
@@ -503,6 +564,32 @@
             return trimmed.toLowerCase().replace(/[^a-z0-9\-\+\#]/g, "-");
         }
 
+        const languageAliasMap = {
+            py: "python",
+            pyi: "python",
+            js: "javascript",
+            mjs: "javascript",
+            cjs: "javascript",
+            jsx: "javascript",
+            tsx: "typescript",
+            yml: "yaml",
+            sh: "shell",
+            bash: "shell",
+            zsh: "shell",
+            fish: "shell",
+            ps1: "powershell",
+            md: "markdown",
+            mdown: "markdown",
+            mkd: "markdown",
+            markdown: "markdown",
+            rst: "rst",
+            dockerfile: "dockerfile",
+            makefile: "makefile",
+            cmake: "cmake",
+            conf: "ini",
+            cfg: "ini"
+        };
+
         const languageKeywordMap = {
             python: ["and", "as", "assert", "break", "class", "continue", "def", "del", "elif", "else", "except", "finally", "for", "from", "global", "if", "import", "in", "is", "lambda", "nonlocal", "not", "or", "pass", "raise", "return", "try", "while", "with", "yield"],
             c: ["auto", "break", "case", "char", "const", "continue", "default", "do", "double", "else", "enum", "extern", "float", "for", "goto", "if", "inline", "int", "long", "register", "restrict", "return", "short", "signed", "sizeof", "static", "struct", "switch", "typedef", "union", "unsigned", "void", "volatile", "while"],
@@ -513,6 +600,20 @@
             typescript: ["abstract", "any", "as", "asserts", "bigint", "boolean", "break", "case", "catch", "class", "const", "constructor", "continue", "declare", "default", "delete", "do", "else", "enum", "export", "extends", "false", "finally", "for", "from", "function", "get", "if", "implements", "import", "in", "infer", "instanceof", "interface", "is", "keyof", "let", "module", "namespace", "never", "new", "null", "number", "object", "of", "override", "package", "private", "protected", "public", "readonly", "require", "return", "set", "static", "string", "super", "switch", "symbol", "this", "throw", "true", "try", "type", "typeof", "undefined", "unique", "unknown", "var", "void", "while", "with", "yield"],
             sql: ["select", "from", "where", "group", "by", "having", "order", "limit", "insert", "into", "values", "update", "set", "delete", "join", "left", "right", "inner", "outer", "on", "create", "table", "primary", "key", "foreign", "not", "null", "default", "unique", "alter", "drop", "index", "view", "as", "and", "or", "exists", "in", "between", "like", "union"],
             shell: ["if", "then", "fi", "elif", "else", "for", "do", "done", "case", "esac", "function", "in", "while", "until", "select", "time"],
+            yaml: ["true", "false", "null", "yes", "no", "on", "off"],
+            json: ["true", "false", "null"],
+            toml: ["true", "false"],
+            rst: ["note", "warning", "tip", "important", "code-block", "image", "contents"],
+            markdown: ["todo", "note", "warning"],
+            css: ["display", "position", "color", "background", "border", "margin", "padding", "font", "width", "height", "flex", "grid"],
+            html: ["html", "head", "body", "div", "span", "section", "article", "header", "footer", "main", "a", "img", "table", "tr", "td", "th"],
+            xml: ["version", "encoding"],
+            lua: ["and", "break", "do", "else", "elseif", "end", "false", "for", "function", "if", "in", "local", "nil", "not", "or", "repeat", "return", "then", "true", "until", "while"],
+            ruby: ["BEGIN", "END", "alias", "and", "begin", "break", "case", "class", "def", "defined?", "do", "else", "elsif", "end", "ensure", "false", "for", "if", "in", "module", "next", "nil", "not", "or", "redo", "rescue", "retry", "return", "self", "super", "then", "true", "undef", "unless", "until", "when", "while", "yield"],
+            php: ["abstract", "and", "array", "as", "break", "case", "catch", "class", "const", "continue", "declare", "default", "do", "echo", "else", "elseif", "empty", "enddeclare", "endfor", "endforeach", "endif", "endswitch", "endwhile", "eval", "exit", "extends", "final", "finally", "for", "foreach", "function", "global", "if", "implements", "include", "instanceof", "interface", "isset", "list", "namespace", "new", "or", "print", "private", "protected", "public", "require", "return", "static", "switch", "throw", "trait", "try", "use", "var", "while", "xor"],
+            kotlin: ["as", "break", "class", "continue", "do", "else", "false", "for", "fun", "if", "in", "interface", "is", "null", "object", "package", "return", "super", "this", "throw", "true", "try", "typealias", "val", "var", "when", "while"],
+            swift: ["associatedtype", "class", "deinit", "enum", "extension", "func", "import", "init", "inout", "let", "operator", "precedencegroup", "protocol", "struct", "subscript", "typealias", "var", "break", "case", "continue", "default", "defer", "do", "else", "fallthrough", "for", "guard", "if", "in", "repeat", "return", "switch", "where", "while"],
+            powershell: ["function", "param", "begin", "process", "end", "if", "elseif", "else", "switch", "foreach", "for", "while", "do", "break", "continue", "return", "try", "catch", "finally"] ,
             rust: ["as", "break", "const", "continue", "crate", "else", "enum", "extern", "false", "fn", "for", "if", "impl", "in", "let", "loop", "match", "mod", "move", "mut", "pub", "ref", "return", "self", "Self", "static", "struct", "super", "trait", "true", "type", "unsafe", "use", "where", "while"],
             csharp: ["abstract", "as", "base", "bool", "break", "byte", "case", "catch", "char", "checked", "class", "const", "continue", "decimal", "default", "delegate", "do", "double", "else", "enum", "event", "explicit", "extern", "false", "finally", "fixed", "float", "for", "foreach", "goto", "if", "implicit", "in", "int", "interface", "internal", "is", "lock", "long", "namespace", "new", "null", "object", "operator", "out", "override", "params", "private", "protected", "public", "readonly", "ref", "return", "sbyte", "sealed", "short", "sizeof", "stackalloc", "static", "string", "struct", "switch", "this", "throw", "true", "try", "typeof", "uint", "ulong", "unchecked", "unsafe", "ushort", "using", "virtual", "void", "volatile", "while"],
         };
@@ -530,14 +631,25 @@
         };
 
         function languagePatterns(language) {
-            const lang = (language || "").toLowerCase();
+            const normalized = (language || "").toLowerCase();
+            const lang = languageAliasMap[normalized] || normalized;
             if (!lang) return [];
             const patterns = [];
 
             if (lang === "sql") {
                 patterns.push({ regex: /--[^\n]*/g, className: "comment" });
                 patterns.push({ regex: /\/\*[\s\S]*?\*\//g, className: "comment" });
-            } else if (lang === "python" || lang === "shell" || lang === "bash" || lang === "sh") {
+            } else if (lang === "html" || lang === "xml") {
+                patterns.push({ regex: /<!--[\s\S]*?-->/g, className: "comment" });
+                patterns.push({ regex: /<\/?[A-Za-z][A-Za-z0-9:_-]*/g, className: "keyword" });
+            } else if (lang === "markdown") {
+                patterns.push({ regex: /^#{1,6}\s+.+$/gm, className: "keyword" });
+                patterns.push({ regex: /`[^`]+`/g, className: "string" });
+                patterns.push({ regex: /^>\s+.*$/gm, className: "comment" });
+            } else if (lang === "rst") {
+                patterns.push({ regex: /^\s*\.\.[\s\w:-]+::.*$/gm, className: "keyword" });
+                patterns.push({ regex: /^\s*:[\w-]+:\s+.*$/gm, className: "type" });
+            } else if (lang === "python" || lang === "shell" || lang === "yaml" || lang === "toml" || lang === "ini" || lang === "makefile" || lang === "cmake" || lang === "powershell") {
                 patterns.push({ regex: /#[^\n]*/g, className: "comment" });
             } else {
                 patterns.push({ regex: /\/\/[^\n]*/g, className: "comment" });
@@ -850,6 +962,26 @@
             return match ? match[1] : null;
         }
 
+        function headingSlugFromText(text) {
+            const raw = (text || "").trim().toLowerCase();
+            if (!raw.length) return "section";
+            const collapsed = raw
+                .replace(/<[^>]+>/g, "")
+                .replace(/[^\p{Letter}\p{Number}\s\-\u4e00-\u9fff\u3040-\u30ff]+/gu, "")
+                .replace(/\s+/g, "-")
+                .replace(/-+/g, "-");
+            return collapsed.length ? collapsed : "section";
+        }
+
+        function renderHeading(level, content, headingState, inlineState = null) {
+            const safeLevel = Math.max(1, Math.min(6, level));
+            const slugBase = headingSlugFromText(content);
+            const count = headingState.get(slugBase) || 0;
+            headingState.set(slugBase, count + 1);
+            const slug = count ? `${slugBase}-${count + 1}` : slugBase;
+            return `<h${safeLevel} id="${escapeHtml(slug)}">${formatInline(content, inlineState)}</h${safeLevel}>`;
+        }
+
         function parseRawHtmlBlock(lines, startIndex) {
             const firstLine = lines[startIndex] || "";
             const trimmed = firstLine.trim();
@@ -942,6 +1074,7 @@
                 footnoteRefs: new Map(),
                 footnoteOrder: []
             };
+            const headingState = new Map();
             let html = frontMatterParsed.block || "";
             let currentList = null; // "ul" | "ol" | "task" | null
             let inCode = false;
@@ -967,13 +1100,13 @@
                     const nextLine = i + 1 < lines.length ? (lines[i + 1] || "") : "";
                     if (line.trim().length && setextH1Pattern.test(nextLine)) {
                         closeList();
-                        html += "<h1>" + formatInline(line.trim(), inlineState) + "</h1>";
+                        html += renderHeading(1, line.trim(), headingState, inlineState);
                         i += 1;
                         continue;
                     }
                     if (line.trim().length && setextH2Pattern.test(nextLine)) {
                         closeList();
-                        html += "<h2>" + formatInline(line.trim(), inlineState) + "</h2>";
+                        html += renderHeading(2, line.trim(), headingState, inlineState);
                         i += 1;
                         continue;
                     }
@@ -1112,12 +1245,12 @@
                     continue;
                 }
 
-                if (/^######\s+/.test(line)) html += "<h6>" + formatInline(line.replace(/^######\s+/, ""), inlineState) + "</h6>";
-                else if (/^#####\s+/.test(line)) html += "<h5>" + formatInline(line.replace(/^#####\s+/, ""), inlineState) + "</h5>";
-                else if (/^####\s+/.test(line)) html += "<h4>" + formatInline(line.replace(/^####\s+/, ""), inlineState) + "</h4>";
-                else if (/^###\s+/.test(line)) html += "<h3>" + formatInline(line.replace(/^###\s+/, ""), inlineState) + "</h3>";
-                else if (/^##\s+/.test(line)) html += "<h2>" + formatInline(line.replace(/^##\s+/, ""), inlineState) + "</h2>";
-                else if (/^#\s+/.test(line)) html += "<h1>" + formatInline(line.replace(/^#\s+/, ""), inlineState) + "</h1>";
+                if (/^######\s+/.test(line)) html += renderHeading(6, line.replace(/^######\s+/, ""), headingState, inlineState);
+                else if (/^#####\s+/.test(line)) html += renderHeading(5, line.replace(/^#####\s+/, ""), headingState, inlineState);
+                else if (/^####\s+/.test(line)) html += renderHeading(4, line.replace(/^####\s+/, ""), headingState, inlineState);
+                else if (/^###\s+/.test(line)) html += renderHeading(3, line.replace(/^###\s+/, ""), headingState, inlineState);
+                else if (/^##\s+/.test(line)) html += renderHeading(2, line.replace(/^##\s+/, ""), headingState, inlineState);
+                else if (/^#\s+/.test(line)) html += renderHeading(1, line.replace(/^#\s+/, ""), headingState, inlineState);
                 else if (/^\s*>\s?/.test(line)) {
                     closeList();
                     const quoteLines = [];
@@ -1613,6 +1746,18 @@
             }
         }
 
+        function scrollToHashTarget(hashValue) {
+            const raw = (hashValue || "").toString().trim();
+            if (!raw.startsWith("#") || raw.length < 2) return false;
+            const targetId = decodeURIComponent(raw.slice(1));
+            if (!targetId.length) return false;
+            const escaped = (window.CSS && CSS.escape) ? CSS.escape(targetId) : targetId.replace(/["'\\]/g, "\\$&");
+            const node = editor.querySelector("#" + escaped);
+            if (!node) return false;
+            node.scrollIntoView({ behavior: "smooth", block: "start" });
+            return true;
+        }
+
         function syncFromMarkdown(markdown) {
             suppressChange = true;
             currentMarkdown = markdown || "";
@@ -1636,6 +1781,16 @@
             currentMarkdown = md;
             if (qtBridge) qtBridge.notifyContentChanged(md);
             scheduleCursorState();
+        });
+
+        editor.addEventListener("click", (event) => {
+            const target = event.target && event.target.closest ? event.target.closest("a[href]") : null;
+            if (!target) return;
+            const href = target.getAttribute("href") || "";
+            if (href.startsWith("#")) {
+                event.preventDefault();
+                scrollToHashTarget(href);
+            }
         });
 
         document.addEventListener("selectionchange", () => {
