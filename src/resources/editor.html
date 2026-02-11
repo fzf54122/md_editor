@@ -107,10 +107,7 @@
             padding: 0;
             min-height: 100%;
             width: 100%;
-            background:
-                radial-gradient(1200px 520px at 10% -10%, rgba(214, 69, 69, 0.12), transparent 58%),
-                radial-gradient(900px 440px at 100% 0%, rgba(34, 96, 160, 0.08), transparent 60%),
-                linear-gradient(180deg, #f8f9fc 0%, var(--body-bg) 100%);
+            background: var(--body-bg);
             color: var(--text-color);
             font-family: "SF Pro Display", "PingFang SC", "Segoe UI", "Helvetica Neue", "Microsoft Yahei", sans-serif;
             -webkit-font-smoothing: antialiased;
@@ -123,42 +120,27 @@
             height: 100%;
             overflow-y: auto;
             background: transparent;
-            padding: 34px 24px 58px;
+            padding: 0;
             box-sizing: border-box;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
         }
         #editor {
-            width: min(920px, 100%);
-            min-height: calc(100% - 40px);
+            width: 100%;
+            min-height: 100%;
             background: var(--page-bg);
-            padding: 56px 86px;
+            padding: 42px 56px;
             box-sizing: border-box;
             line-height: 1.72;
             font-size: 17px;
             letter-spacing: 0.01em;
             outline: none;
-            border-radius: 22px;
-            margin: 0 auto;
-            box-shadow: var(--page-shadow);
-            border: 1px solid rgba(255, 255, 255, 0.75);
-            transition: box-shadow 220ms ease;
-            animation: page-rise 320ms ease-out;
-        }
-        #editor:focus {
-            box-shadow: 0 30px 70px rgba(15, 23, 42, 0.15);
         }
         @media (max-width: 1024px) {
             #editorWrapper {
-                padding-top: 18px;
-                padding-left: 12px;
-                padding-right: 12px;
+                padding: 0;
             }
             #editor {
                 width: 100%;
-                border-radius: 14px;
-                padding: 32px 22px;
+                padding: 24px 16px;
             }
         }
         #editor h1 { font-size: 38px; margin: 32px 0 16px; font-weight: 600; }
@@ -235,17 +217,15 @@
         }
         #editor pre code {
             display: block;
-            counter-reset: code-line;
         }
         #editor pre code .code-line {
             display: block;
-            padding-left: 54px;
+            padding-left: 0;
             position: relative;
             min-height: 22px;
         }
         #editor pre code .code-line::before {
-            content: counter(code-line);
-            counter-increment: code-line;
+            content: none;
             position: absolute;
             left: 16px;
             color: var(--muted-color);
@@ -303,16 +283,6 @@
             border-top: 1px dashed var(--border-color);
             margin: 32px 0;
         }
-        @keyframes page-rise {
-            from {
-                opacity: 0;
-                transform: translateY(12px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
         #editor a {
             color: var(--accent-color);
             text-decoration: none;
@@ -366,8 +336,18 @@
         #editor img {
             max-width: 100%;
             border-radius: 12px;
-            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
             margin: 24px 0;
+        }
+        #editor [align="center"] {
+            text-align: center;
+        }
+        #editor [align="right"] {
+            text-align: right;
+        }
+        #editor [align="center"] table {
+            margin-left: auto;
+            margin-right: auto;
         }
         #editor .frontmatter {
             margin: 18px 0 24px;
@@ -1642,8 +1622,8 @@
                     : renderPlainTextDocument(currentMarkdown);
             } else {
                 editor.innerHTML = markdownToHtml(currentMarkdown);
+                scheduleDecorateCodeBlocks();
             }
-            decorateCodeBlocks();
             setTimeout(() => {
                 suppressChange = false;
                 scheduleCursorState();
@@ -1732,6 +1712,18 @@
             }
         };
 
+        let decorateCodeHandle = 0;
+
+        function scheduleDecorateCodeBlocks() {
+            if (decorateCodeHandle) {
+                cancelAnimationFrame(decorateCodeHandle);
+            }
+            decorateCodeHandle = requestAnimationFrame(() => {
+                decorateCodeHandle = 0;
+                decorateCodeBlocks();
+            });
+        }
+
         function decorateCodeBlocks() {
             const blocks = editor.querySelectorAll("pre code");
             blocks.forEach(codeElem => {
@@ -1740,8 +1732,14 @@
                 const dataLang = codeElem.getAttribute("data-lang") || "";
                 const classMatch = classAttr.match(/language-([a-z0-9\-\+\#]+)/i);
                 const lang = normalizeLanguageName(dataLang || (classMatch ? classMatch[1] : ""));
-                const highlighted = highlightCode(raw.replace(/\r/g, ""), lang);
-                codeElem.innerHTML = highlighted;
+                const normalizedRaw = raw.replace(/\r/g, "");
+                const lineCount = normalizedRaw.split("\n").length;
+                if (normalizedRaw.length > 12000 || lineCount > 320) {
+                    codeElem.textContent = normalizedRaw;
+                } else {
+                    const highlighted = highlightCode(normalizedRaw, lang);
+                    codeElem.innerHTML = highlighted;
+                }
                 const pre = codeElem.parentElement;
                 if (pre && lang.length) {
                     pre.setAttribute("data-lang", lang);
