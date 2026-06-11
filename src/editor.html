@@ -1,0 +1,2042 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8" />
+    <title>Typora WYSIWYG</title>
+    <style>
+        :root {
+            --body-bg: #e9edf3;
+            --page-bg: #ffffff;
+            --text-color: #24292f;
+            --muted-color: #57606a;
+            --accent-color: #0969da;
+            --accent-soft: rgba(9, 105, 218, 0.16);
+            --border-color: #d0d7de;
+            --inline-code-bg: #f6f8fa;
+            --inline-code-color: #cf222e;
+            --code-block-bg: #0d1117;
+            --code-block-color: #e6edf3;
+            --blockquote-bg: #f6f8fa;
+            --blockquote-border: #d0d7de;
+            --blockquote-color: #57606a;
+            --selection-bg: rgba(9, 105, 218, 0.2);
+            --table-head-bg: #f6f8fa;
+            --table-head-color: #24292f;
+            --link-underline: rgba(9, 105, 218, 0.36);
+            --code-keyword: #ff7b72;
+            --code-string: #a5d6ff;
+            --code-comment: #8b949e;
+            --code-number: #79c0ff;
+            --code-type: #d2a8ff;
+            --surface-border: #d8dee6;
+            --surface-shadow: 0 20px 45px rgba(15, 23, 42, 0.08);
+        }
+        body.plain-mode {
+            background: var(--body-bg);
+        }
+        body.plain-mode #editorWrapper {
+            background: var(--body-bg);
+            display: block;
+            padding: 0;
+        }
+        body.plain-mode #editor {
+            font-family: "JetBrains Mono", "Fira Code", "Menlo", monospace;
+            font-size: 15px;
+            padding: 32px 64px;
+            max-width: none;
+            width: 100%;
+            margin: 0;
+            border-radius: 0;
+            background: var(--page-bg);
+            box-shadow: none;
+            color: var(--text-color);
+            line-height: 1.6;
+            letter-spacing: 0;
+            box-sizing: border-box;
+            border: none;
+        }
+        body.plain-mode #editor h1,
+        body.plain-mode #editor h2,
+        body.plain-mode #editor h3,
+        body.plain-mode #editor h4,
+        body.plain-mode #editor h5,
+        body.plain-mode #editor h6,
+        body.plain-mode #editor p {
+            font-family: inherit;
+            margin: 10px 0;
+            font-weight: 400;
+            color: inherit;
+            letter-spacing: 0;
+        }
+        body.plain-mode #editor ul,
+        body.plain-mode #editor ol {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        body.plain-mode #editor blockquote {
+            background: var(--blockquote-bg);
+            border-left-color: var(--blockquote-border);
+            color: var(--blockquote-color);
+        }
+        body.plain-mode #editor code {
+            background: var(--inline-code-bg);
+            color: var(--inline-code-color);
+        }
+        body.plain-mode #editor pre {
+            background: var(--code-block-bg);
+            color: var(--code-block-color);
+            box-shadow: inset 0 0 0 1px var(--border-color);
+            border-radius: 14px;
+        }
+        body.plain-mode #editor pre.plain-text {
+            background: var(--page-bg);
+            color: var(--text-color);
+            padding: 0;
+            margin: 0;
+            box-shadow: none;
+            border-radius: 0;
+        }
+        body.plain-mode #editor table {
+            background: var(--page-bg);
+            border-color: var(--border-color);
+        }
+        body.plain-mode ::selection {
+            background: var(--selection-bg);
+        }
+        html, body {
+            margin: 0;
+            padding: 0;
+            min-height: 100%;
+            width: 100%;
+            background:
+                radial-gradient(1200px 500px at 15% -10%, rgba(9, 105, 218, 0.08), transparent 60%),
+                radial-gradient(1000px 420px at 100% 0%, rgba(36, 41, 47, 0.04), transparent 62%),
+                var(--body-bg);
+            color: var(--text-color);
+            font-family: "Segoe UI", "PingFang SC", "Microsoft Yahei", "Helvetica Neue", Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+        body {
+            height: 100vh;
+        }
+        #editorWrapper {
+            width: 100%;
+            height: 100%;
+            overflow-y: auto;
+            background: transparent;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        #editor {
+            width: min(1140px, 100%);
+            min-height: calc(100% - 40px);
+            background: var(--page-bg);
+            padding: 26px 20px 42px;
+            box-sizing: border-box;
+            line-height: 1.7;
+            font-size: 16px;
+            letter-spacing: 0;
+            outline: none;
+            margin: 0 auto;
+            border: 1px solid var(--surface-border);
+            border-radius: 14px;
+            box-shadow: var(--surface-shadow);
+        }
+        #editor:focus {
+            box-shadow: var(--surface-shadow), inset 0 0 0 1px var(--accent-soft);
+        }
+        #editor > h1,
+        #editor > h2,
+        #editor > h3,
+        #editor > h4,
+        #editor > h5,
+        #editor > h6,
+        #editor > p,
+        #editor > ul,
+        #editor > ol,
+        #editor > blockquote,
+        #editor > dl,
+        #editor > hr,
+        #editor > .frontmatter,
+        #editor > .math-block,
+        #editor > .footnotes {
+            max-width: 920px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        #editor > pre,
+        #editor > table {
+            max-width: 1040px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        @media (max-width: 1024px) {
+            #editorWrapper {
+                padding: 10px;
+            }
+            #editor {
+                width: 100%;
+                min-height: calc(100% - 20px);
+                padding: 18px 14px;
+                border-radius: 10px;
+            }
+            #editor > pre,
+            #editor > table,
+            #editor > h1,
+            #editor > h2,
+            #editor > h3,
+            #editor > h4,
+            #editor > h5,
+            #editor > h6,
+            #editor > p,
+            #editor > ul,
+            #editor > ol,
+            #editor > blockquote,
+            #editor > dl,
+            #editor > hr,
+            #editor > .frontmatter,
+            #editor > .math-block,
+            #editor > .footnotes {
+                max-width: none;
+            }
+            #editor [align="center"] > p.hero-subtitle {
+                font-size: 18px;
+            }
+            #editor [align="center"] > p.lang-switch,
+            #editor [align="center"] > p.quick-links {
+                font-size: 16px;
+            }
+        }
+        #editor h1 {
+            font-size: 36px;
+            margin: 12px 0 16px;
+            font-weight: 700;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+            scroll-margin-top: 18px;
+        }
+        #editor h2 {
+            font-size: 28px;
+            margin: 36px 0 14px;
+            font-weight: 700;
+            scroll-margin-top: 18px;
+        }
+        #editor h3 { font-size: 23px; margin: 28px 0 12px; font-weight: 650; scroll-margin-top: 18px; }
+        #editor h4 { font-size: 19px; margin: 22px 0 10px; font-weight: 650; scroll-margin-top: 18px; }
+        #editor h5 { font-size: 17px; margin: 18px 0 8px; font-weight: 650; scroll-margin-top: 18px; }
+        #editor h6 {
+            font-size: 14px;
+            margin: 18px 0 8px;
+            font-weight: 600;
+            color: var(--muted-color);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            scroll-margin-top: 18px;
+        }
+        #editor p {
+            margin: 14px 0;
+            font-size: 16px;
+            color: var(--text-color);
+        }
+        #editor p + p {
+            margin-top: 12px;
+        }
+        #editor strong { font-weight: 600; }
+        #editor em { font-style: italic; }
+        #editor del { text-decoration: line-through; opacity: 0.78; }
+        #editor mark {
+            background: rgba(214, 69, 69, 0.18);
+            color: var(--text-color);
+            border-radius: 4px;
+            padding: 0 4px;
+        }
+        #editor ul, #editor ol {
+            margin: 16px 0;
+            padding-left: 28px;
+        }
+        #editor li {
+            margin: 6px 0;
+        }
+        #editor li::marker {
+            color: var(--accent-color);
+        }
+        #editor blockquote {
+            margin: 20px 0;
+            padding: 12px 14px;
+            border-left: 3px solid var(--blockquote-border);
+            background: var(--blockquote-bg);
+            color: var(--blockquote-color);
+            border-radius: 0 6px 6px 0;
+        }
+        #editor code {
+            background: var(--inline-code-bg);
+            border-radius: 6px;
+            padding: 2px 6px;
+            font-family: "JetBrains Mono", "Fira Code", monospace;
+            font-size: 0.95em;
+            color: var(--inline-code-color);
+        }
+        #editor pre {
+            position: relative;
+            margin: 20px 0;
+            padding: 28px 16px 14px;
+            border-radius: 8px;
+            overflow: auto;
+            background: var(--code-block-bg);
+            color: var(--code-block-color);
+            font-family: "JetBrains Mono", "Fira Code", monospace;
+            font-size: 14px;
+            line-height: 1.55;
+            box-shadow: inset 0 0 0 1px rgba(240, 246, 252, 0.12);
+        }
+        #editor pre code {
+            display: block;
+        }
+        #editor pre code .code-line {
+            display: block;
+            padding-left: 0;
+            position: relative;
+            min-height: 21px;
+        }
+        #editor pre code .code-line::before {
+            content: none;
+            position: absolute;
+            left: 16px;
+            color: var(--muted-color);
+            opacity: 0.8;
+            font-size: 12px;
+            min-width: 24px;
+            text-align: right;
+        }
+        #editor pre code .code-line.highlight {
+            background: rgba(255, 255, 255, 0.04);
+        }
+        #editor pre code .token.keyword { color: var(--code-keyword); }
+        #editor pre code .token.string { color: var(--code-string); }
+        #editor pre code .token.comment { color: var(--code-comment); font-style: italic; }
+        #editor pre code .token.number { color: var(--code-number); }
+        #editor pre code .token.type { color: var(--code-type); }
+        #editor pre::before {
+            content: attr(data-lang);
+            position: absolute;
+            top: 6px;
+            right: 10px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: var(--muted-color);
+            background: rgba(240, 246, 252, 0.12);
+            border: 1px solid rgba(240, 246, 252, 0.16);
+            border-radius: 4px;
+            padding: 1px 6px;
+        }
+        #editor pre:not([data-lang])::before,
+        #editor pre[data-lang=""]::before {
+            content: "code";
+        }
+        #editor pre code {
+            display: block;
+            background: transparent;
+            padding: 0;
+            color: inherit;
+            white-space: pre;
+        }
+        #editor .task-list {
+            list-style: none;
+            padding-left: 0;
+            margin: 16px 0;
+        }
+        #editor .task-list .task-list-item {
+            display: flex;
+            gap: 8px;
+            align-items: flex-start;
+        }
+        #editor .task-list .task-list-item input[type="checkbox"] {
+            margin-top: 4px;
+            cursor: default;
+        }
+        #editor hr {
+            border: none;
+            border-top: 1px dashed var(--border-color);
+            margin: 32px 0;
+        }
+        #editor a {
+            color: var(--accent-color);
+            text-decoration: none;
+            border-bottom: 1px solid var(--link-underline);
+        }
+        #editor a:hover {
+            border-bottom-color: var(--accent-color);
+        }
+        #editor table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+            font-size: 0.94em;
+            background: var(--page-bg);
+        }
+        #editor table.ty-table {
+            box-shadow: inset 0 0 0 1px var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        #editor table th,
+        #editor table td {
+            padding: 10px 14px;
+            border: 1px solid var(--border-color);
+        }
+        #editor table thead th {
+            background: var(--table-head-bg);
+            font-weight: 600;
+            color: var(--table-head-color);
+        }
+        #editor table tbody tr:nth-child(even) {
+            background: #fbfcfd;
+        }
+        #editor table td[data-align="center"],
+        #editor table th[data-align="center"] {
+            text-align: center;
+        }
+        #editor table td[data-align="right"],
+        #editor table th[data-align="right"] {
+            text-align: right;
+        }
+        #editor dl {
+            margin: 18px 0;
+        }
+        #editor dt {
+            margin-top: 10px;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+        #editor dd {
+            margin: 6px 0 12px 22px;
+            color: var(--muted-color);
+        }
+        #editor img {
+            max-width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+            margin: 24px 0;
+        }
+        #editor [align="center"] {
+            text-align: center;
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 10px 0 4px;
+        }
+        #editor [align="center"] > p {
+            margin: 12px 0;
+            line-height: 1.68;
+        }
+        #editor [align="center"] > p.hero-subtitle {
+            font-size: 19px;
+            font-weight: 600;
+            margin-top: 8px;
+            margin-bottom: 10px;
+            letter-spacing: 0;
+        }
+        #editor [align="center"] > p.lang-switch {
+            margin-top: 2px;
+            margin-bottom: 12px;
+            font-size: 16px;
+        }
+        #editor [align="center"] > p.badge-row {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 10px 0 16px;
+        }
+        #editor [align="center"] > p.badge-row img {
+            margin: 0;
+            border-radius: 6px;
+            box-shadow: none;
+        }
+        #editor [align="center"] > p.quick-links {
+            margin-top: 8px;
+            margin-bottom: 14px;
+            font-size: 14px;
+            line-height: 1.75;
+        }
+        #editor [align="center"] > p.quick-links .sep {
+            color: var(--muted-color);
+            margin: 0 6px;
+            opacity: 0.75;
+        }
+        #editor [align="center"] > p.quick-links a {
+            font-weight: 500;
+            margin: 0 2px;
+        }
+        #editor [align="right"] {
+            text-align: right;
+        }
+        #editor [align="center"] table {
+            margin-left: auto;
+            margin-right: auto;
+        }
+        #editor [align="center"] a {
+            color: #0f62c9;
+            border-bottom-color: rgba(15, 98, 201, 0.32);
+        }
+        #editor [align="center"] a:hover {
+            border-bottom-color: #0f62c9;
+        }
+        #editor .frontmatter {
+            margin: 18px 0 24px;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+            background: var(--page-bg);
+        }
+        #editor .frontmatter::before {
+            content: "Front Matter";
+            display: block;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--muted-color);
+            padding: 8px 12px;
+            background: var(--table-head-bg);
+            border-bottom: 1px solid var(--border-color);
+        }
+        #editor .frontmatter pre {
+            margin: 0;
+            padding: 14px 16px;
+            border-radius: 0;
+            background: transparent;
+            color: var(--text-color);
+            box-shadow: none;
+        }
+        #editor .math-inline {
+            font-family: "JetBrains Mono", "Fira Code", monospace;
+            padding: 1px 6px;
+            border-radius: 6px;
+            background: var(--inline-code-bg);
+            color: var(--inline-code-color);
+        }
+        #editor .math-block {
+            margin: 22px 0;
+            padding: 14px 16px;
+            border-radius: 12px;
+            background: rgba(17, 19, 26, 0.06);
+            border: 1px dashed var(--border-color);
+            font-family: "JetBrains Mono", "Fira Code", monospace;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        #editor .footnotes {
+            margin-top: 36px;
+            padding-top: 14px;
+            border-top: 1px dashed var(--border-color);
+        }
+        #editor .footnotes ol {
+            margin: 10px 0 0;
+            padding-left: 22px;
+        }
+        #editor .footnotes li {
+            margin: 8px 0;
+        }
+        #editor .footnote-ref {
+            margin-left: 2px;
+            font-size: 0.82em;
+            vertical-align: super;
+        }
+        #editor .footnote-backref {
+            margin-left: 8px;
+            font-size: 0.9em;
+            border-bottom: none;
+        }
+        #editor:empty::before {
+            content: "开始输入 Markdown 内容…";
+            color: var(--muted-color);
+        }
+        ::selection {
+            background: var(--selection-bg);
+        }
+        #editorWrapper::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+        #editorWrapper::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        #editorWrapper::-webkit-scrollbar-thumb {
+            background: #c1c7d0;
+            border-radius: 8px;
+            border: 2px solid transparent;
+            background-clip: content-box;
+        }
+        #editorWrapper::-webkit-scrollbar-thumb:hover {
+            background: #aeb6c2;
+            background-clip: content-box;
+        }
+    </style>
+</head>
+<body>
+    <div id="editorWrapper">
+        <div id="editor" contenteditable="true"></div>
+    </div>
+    <script>
+        const editor = document.getElementById("editor");
+        let suppressChange = false;
+        let currentMarkdown = "";
+        let qtBridge = null;
+        let plainMode = false;
+        let plainLanguage = "";
+        let markdownMode = "typora";
+
+        function normalizeMarkdownMode(value) {
+            const normalized = (value || "").toString().trim().toLowerCase();
+            if (normalized === "commonmark" || normalized === "gfm" || normalized === "typora") {
+                return normalized;
+            }
+            return "typora";
+        }
+
+        function modeSupports(feature) {
+            if (markdownMode === "commonmark") {
+                return feature === "base";
+            }
+            if (markdownMode === "gfm") {
+                return feature === "base" || feature === "gfm";
+            }
+            return true;
+        }
+
+        function applyThemePalette(palette) {
+            if (!palette || typeof palette !== "object") return;
+            const root = document.documentElement;
+            const toCssVar = key => "--" + key.replace(/([A-Z])/g, "-$1").toLowerCase();
+            Object.keys(palette).forEach(key => {
+                const value = palette[key];
+                if (typeof value === "string" && value.length) {
+                    root.style.setProperty(toCssVar(key), value);
+                }
+            });
+        }
+
+        function setPlainMode(flag, language) {
+            plainMode = !!flag;
+            if (typeof language === "string") {
+                plainLanguage = language.trim().toLowerCase();
+            }
+            document.body.dataset.plainLang = plainLanguage || "";
+            document.body.classList.toggle("plain-mode", plainMode);
+            // 重新渲染以匹配当前模式/语言，避免切换后内容为空或未更新。
+            syncFromMarkdown(currentMarkdown);
+        }
+
+        function setMarkdownMode(mode) {
+            markdownMode = normalizeMarkdownMode(mode);
+            document.body.dataset.mdMode = markdownMode;
+            syncFromMarkdown(currentMarkdown);
+        }
+
+        setPlainMode(false, "");
+        setMarkdownMode("typora");
+
+        function escapeHtml(text) {
+            return (text || "")
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#39;");
+        }
+
+        function normalizeLanguageName(raw) {
+            const trimmed = (raw || "").trim();
+            if (!trimmed.length) return "";
+            return trimmed.toLowerCase().replace(/[^a-z0-9\-\+\#]/g, "-");
+        }
+
+        const languageAliasMap = {
+            py: "python",
+            pyi: "python",
+            js: "javascript",
+            mjs: "javascript",
+            cjs: "javascript",
+            jsx: "javascript",
+            tsx: "typescript",
+            yml: "yaml",
+            sh: "shell",
+            bash: "shell",
+            zsh: "shell",
+            fish: "shell",
+            ps1: "powershell",
+            md: "markdown",
+            mdown: "markdown",
+            mkd: "markdown",
+            markdown: "markdown",
+            rst: "rst",
+            dockerfile: "dockerfile",
+            makefile: "makefile",
+            cmake: "cmake",
+            conf: "ini",
+            cfg: "ini"
+        };
+
+        const languageKeywordMap = {
+            python: ["and", "as", "assert", "break", "class", "continue", "def", "del", "elif", "else", "except", "finally", "for", "from", "global", "if", "import", "in", "is", "lambda", "nonlocal", "not", "or", "pass", "raise", "return", "try", "while", "with", "yield"],
+            c: ["auto", "break", "case", "char", "const", "continue", "default", "do", "double", "else", "enum", "extern", "float", "for", "goto", "if", "inline", "int", "long", "register", "restrict", "return", "short", "signed", "sizeof", "static", "struct", "switch", "typedef", "union", "unsigned", "void", "volatile", "while"],
+            cpp: ["alignas", "alignof", "and", "and_eq", "asm", "auto", "bitand", "bitor", "bool", "break", "case", "catch", "char", "char16_t", "char32_t", "class", "compl", "concept", "const", "consteval", "constexpr", "constinit", "const_cast", "continue", "co_await", "co_return", "co_yield", "decltype", "default", "delete", "do", "double", "dynamic_cast", "else", "enum", "explicit", "export", "extern", "false", "float", "for", "friend", "goto", "if", "inline", "int", "long", "mutable", "namespace", "new", "noexcept", "not", "not_eq", "nullptr", "operator", "or", "or_eq", "private", "protected", "public", "register", "reinterpret_cast", "requires", "return", "short", "signed", "sizeof", "static", "static_assert", "static_cast", "struct", "switch", "template", "this", "thread_local", "throw", "true", "try", "typedef", "typeid", "typename", "union", "unsigned", "using", "virtual", "void", "volatile", "wchar_t", "while", "xor", "xor_eq"],
+            go: ["break", "case", "chan", "const", "continue", "default", "defer", "else", "fallthrough", "for", "func", "go", "goto", "if", "import", "interface", "map", "package", "range", "return", "select", "struct", "switch", "type", "var"],
+            java: ["abstract", "assert", "boolean", "break", "byte", "case", "catch", "char", "class", "const", "continue", "default", "do", "double", "else", "enum", "extends", "final", "finally", "float", "for", "goto", "if", "implements", "import", "instanceof", "int", "interface", "long", "native", "new", "package", "private", "protected", "public", "return", "short", "static", "strictfp", "super", "switch", "synchronized", "this", "throw", "throws", "transient", "try", "void", "volatile", "while"],
+            javascript: ["break", "case", "catch", "class", "const", "continue", "debugger", "default", "delete", "do", "else", "enum", "export", "extends", "false", "finally", "for", "function", "if", "import", "in", "instanceof", "let", "new", "null", "return", "super", "switch", "this", "throw", "true", "try", "typeof", "var", "void", "while", "with", "yield"],
+            typescript: ["abstract", "any", "as", "asserts", "bigint", "boolean", "break", "case", "catch", "class", "const", "constructor", "continue", "declare", "default", "delete", "do", "else", "enum", "export", "extends", "false", "finally", "for", "from", "function", "get", "if", "implements", "import", "in", "infer", "instanceof", "interface", "is", "keyof", "let", "module", "namespace", "never", "new", "null", "number", "object", "of", "override", "package", "private", "protected", "public", "readonly", "require", "return", "set", "static", "string", "super", "switch", "symbol", "this", "throw", "true", "try", "type", "typeof", "undefined", "unique", "unknown", "var", "void", "while", "with", "yield"],
+            sql: ["select", "from", "where", "group", "by", "having", "order", "limit", "insert", "into", "values", "update", "set", "delete", "join", "left", "right", "inner", "outer", "on", "create", "table", "primary", "key", "foreign", "not", "null", "default", "unique", "alter", "drop", "index", "view", "as", "and", "or", "exists", "in", "between", "like", "union"],
+            shell: ["if", "then", "fi", "elif", "else", "for", "do", "done", "case", "esac", "function", "in", "while", "until", "select", "time"],
+            yaml: ["true", "false", "null", "yes", "no", "on", "off"],
+            json: ["true", "false", "null"],
+            toml: ["true", "false"],
+            rst: ["note", "warning", "tip", "important", "code-block", "image", "contents"],
+            markdown: ["todo", "note", "warning"],
+            css: ["display", "position", "color", "background", "border", "margin", "padding", "font", "width", "height", "flex", "grid"],
+            html: ["html", "head", "body", "div", "span", "section", "article", "header", "footer", "main", "a", "img", "table", "tr", "td", "th"],
+            xml: ["version", "encoding"],
+            lua: ["and", "break", "do", "else", "elseif", "end", "false", "for", "function", "if", "in", "local", "nil", "not", "or", "repeat", "return", "then", "true", "until", "while"],
+            ruby: ["BEGIN", "END", "alias", "and", "begin", "break", "case", "class", "def", "defined?", "do", "else", "elsif", "end", "ensure", "false", "for", "if", "in", "module", "next", "nil", "not", "or", "redo", "rescue", "retry", "return", "self", "super", "then", "true", "undef", "unless", "until", "when", "while", "yield"],
+            php: ["abstract", "and", "array", "as", "break", "case", "catch", "class", "const", "continue", "declare", "default", "do", "echo", "else", "elseif", "empty", "enddeclare", "endfor", "endforeach", "endif", "endswitch", "endwhile", "eval", "exit", "extends", "final", "finally", "for", "foreach", "function", "global", "if", "implements", "include", "instanceof", "interface", "isset", "list", "namespace", "new", "or", "print", "private", "protected", "public", "require", "return", "static", "switch", "throw", "trait", "try", "use", "var", "while", "xor"],
+            kotlin: ["as", "break", "class", "continue", "do", "else", "false", "for", "fun", "if", "in", "interface", "is", "null", "object", "package", "return", "super", "this", "throw", "true", "try", "typealias", "val", "var", "when", "while"],
+            swift: ["associatedtype", "class", "deinit", "enum", "extension", "func", "import", "init", "inout", "let", "operator", "precedencegroup", "protocol", "struct", "subscript", "typealias", "var", "break", "case", "continue", "default", "defer", "do", "else", "fallthrough", "for", "guard", "if", "in", "repeat", "return", "switch", "where", "while"],
+            powershell: ["function", "param", "begin", "process", "end", "if", "elseif", "else", "switch", "foreach", "for", "while", "do", "break", "continue", "return", "try", "catch", "finally"] ,
+            rust: ["as", "break", "const", "continue", "crate", "else", "enum", "extern", "false", "fn", "for", "if", "impl", "in", "let", "loop", "match", "mod", "move", "mut", "pub", "ref", "return", "self", "Self", "static", "struct", "super", "trait", "true", "type", "unsafe", "use", "where", "while"],
+            csharp: ["abstract", "as", "base", "bool", "break", "byte", "case", "catch", "char", "checked", "class", "const", "continue", "decimal", "default", "delegate", "do", "double", "else", "enum", "event", "explicit", "extern", "false", "finally", "fixed", "float", "for", "foreach", "goto", "if", "implicit", "in", "int", "interface", "internal", "is", "lock", "long", "namespace", "new", "null", "object", "operator", "out", "override", "params", "private", "protected", "public", "readonly", "ref", "return", "sbyte", "sealed", "short", "sizeof", "stackalloc", "static", "string", "struct", "switch", "this", "throw", "true", "try", "typeof", "uint", "ulong", "unchecked", "unsafe", "ushort", "using", "virtual", "void", "volatile", "while"],
+        };
+
+        const languageTypeMap = {
+            c: ["int", "long", "short", "float", "double", "char", "void", "size_t", "bool"],
+            cpp: ["int", "long", "short", "float", "double", "char", "void", "size_t", "bool", "std", "string", "vector", "map", "auto"],
+            go: ["string", "error", "byte", "rune", "int", "int64", "int32", "uint", "uint64", "uint32", "float32", "float64", "complex64", "complex128", "struct", "interface", "chan", "map"],
+            java: ["String", "Integer", "Long", "Double", "Float", "Boolean", "List", "Map", "Set", "void", "int", "long", "double", "float", "boolean", "char"],
+            javascript: ["string", "number", "boolean", "bigint", "symbol", "object", "undefined", "null"],
+            typescript: ["string", "number", "boolean", "bigint", "symbol", "object", "unknown", "any", "never", "void"],
+            sql: ["int", "integer", "smallint", "bigint", "varchar", "text", "date", "timestamp", "boolean", "numeric", "serial"],
+            rust: ["i32", "i64", "u32", "u64", "usize", "isize", "f32", "f64", "bool", "str", "String", "Vec", "Option", "Result"],
+            csharp: ["int", "long", "short", "float", "double", "decimal", "string", "bool", "object", "var"]
+        };
+
+        function languagePatterns(language) {
+            const normalized = (language || "").toLowerCase();
+            const lang = languageAliasMap[normalized] || normalized;
+            if (!lang) return [];
+            const patterns = [];
+
+            if (lang === "sql") {
+                patterns.push({ regex: /--[^\n]*/g, className: "comment" });
+                patterns.push({ regex: /\/\*[\s\S]*?\*\//g, className: "comment" });
+            } else if (lang === "html" || lang === "xml") {
+                patterns.push({ regex: /<!--[\s\S]*?-->/g, className: "comment" });
+                patterns.push({ regex: /<\/?[A-Za-z][A-Za-z0-9:_-]*/g, className: "keyword" });
+            } else if (lang === "markdown") {
+                patterns.push({ regex: /^#{1,6}\s+.+$/gm, className: "keyword" });
+                patterns.push({ regex: /`[^`]+`/g, className: "string" });
+                patterns.push({ regex: /^>\s+.*$/gm, className: "comment" });
+            } else if (lang === "rst") {
+                patterns.push({ regex: /^\s*\.\.[\s\w:-]+::.*$/gm, className: "keyword" });
+                patterns.push({ regex: /^\s*:[\w-]+:\s+.*$/gm, className: "type" });
+            } else if (lang === "python" || lang === "shell" || lang === "yaml" || lang === "toml" || lang === "ini" || lang === "makefile" || lang === "cmake" || lang === "powershell") {
+                patterns.push({ regex: /#[^\n]*/g, className: "comment" });
+            } else {
+                patterns.push({ regex: /\/\/[^\n]*/g, className: "comment" });
+                patterns.push({ regex: /\/\*[\s\S]*?\*\//g, className: "comment" });
+            }
+
+            patterns.push({ regex: /"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/g, className: "string" });
+
+            const keywords = languageKeywordMap[lang];
+            if (keywords && keywords.length) {
+                const keywordRegex = new RegExp("\\b(" + keywords.join("|") + ")\\b", "g");
+                patterns.push({ regex: keywordRegex, className: "keyword" });
+            }
+
+            const types = languageTypeMap[lang];
+            if (types && types.length) {
+                const typeRegex = new RegExp("\\b(" + types.join("|") + ")\\b", "g");
+                patterns.push({ regex: typeRegex, className: "type" });
+            }
+
+            patterns.push({ regex: /\b0x[0-9a-fA-F]+\b|\b\d+(?:\.\d+)?\b/g, className: "number" });
+            return patterns;
+        }
+
+        function collectMatches(source, patterns) {
+            const matches = [];
+            patterns.forEach((pattern, priority) => {
+                if (!pattern || !pattern.regex)
+                    return;
+                const regex = new RegExp(pattern.regex.source, pattern.regex.flags);
+                let match;
+                while ((match = regex.exec(source)) !== null) {
+                    if (!match[0].length) {
+                        regex.lastIndex += 1;
+                        continue;
+                    }
+                    matches.push({
+                        start: match.index,
+                        end: match.index + match[0].length,
+                        className: pattern.className,
+                        priority
+                    });
+                }
+            });
+            return matches;
+        }
+
+        function applyMatches(source, matches) {
+            if (!matches.length)
+                return escapeHtml(source);
+
+            matches.sort((a, b) => {
+                if (a.start === b.start)
+                    return a.priority - b.priority;
+                return a.start - b.start;
+            });
+
+            let result = "";
+            let cursor = 0;
+            matches.forEach(match => {
+                if (match.start < cursor)
+                    return;
+                result += escapeHtml(source.slice(cursor, match.start));
+                result += '<span class="token ' + match.className + '">' + escapeHtml(source.slice(match.start, match.end)) + "</span>";
+                cursor = match.end;
+            });
+            result += escapeHtml(source.slice(cursor));
+            return result;
+        }
+
+        function highlightCode(source, language) {
+            const patterns = languagePatterns(language);
+            const highlighted = applyMatches(source || "", patterns);
+            const lines = highlighted.split("\n");
+            return lines.map(line => {
+                const content = line.length ? line : "&nbsp;";
+                return '<span class="code-line">' + content + "</span>";
+            }).join("\n");
+        }
+
+        function renderPlainCodeDocument(text, language) {
+            const normalized = normalizeLanguageName(language);
+            const highlighted = highlightCode(text || "", normalized);
+            const safeLang = escapeHtml(normalized || language || "");
+            const langAttr = safeLang.length ? ' data-lang="' + safeLang + '"' : "";
+            const classAttr = safeLang.length ? ' class="language-' + safeLang + '"' : "";
+            return "<pre" + langAttr + "><code" + classAttr + ">" + highlighted + "</code></pre>";
+        }
+
+        function renderPlainTextDocument(text) {
+            return '<pre class="plain-text">' + escapeHtml(text || "") + "</pre>";
+        }
+
+        function extractPlainText() {
+            const codeElem = editor.querySelector("pre code");
+            if (!codeElem)
+                return (editor.innerText || "").replace(/\r/g, "");
+            return (codeElem.textContent || "").replace(/\r/g, "");
+        }
+
+        function applyAutoLink(text) {
+            return text.replace(/(^|\s)(https?:\/\/[^\s<]+)/g, (all, prefix, url) => {
+                const safeUrl = url.replace(/[.,;!?]+$/, "");
+                const tail = url.slice(safeUrl.length);
+                return prefix + '<a href="' + safeUrl + '">' + safeUrl + "</a>" + tail;
+            });
+        }
+
+        function applyInlineMath(text) {
+            return text.replace(/\$(.+?)\$/g, (all, expr) => {
+                const safeExpr = escapeHtml(expr.trim());
+                return '<span class="math-inline" data-math="' + safeExpr + '">' + safeExpr + "</span>";
+            });
+        }
+
+        function applyFootnoteRefs(text, state) {
+            if (!modeSupports("typora")) return text;
+            return text.replace(/\[\^([^\]\s]+)\]/g, (all, id) => {
+                const normalized = id.trim();
+                if (!normalized.length) return all;
+                if (!state.footnoteRefs.has(normalized)) {
+                    state.footnoteRefs.set(normalized, state.footnoteOrder.length + 1);
+                    state.footnoteOrder.push(normalized);
+                }
+                const index = state.footnoteRefs.get(normalized);
+                const safeId = escapeHtml(normalized);
+                return '<sup class="footnote-ref" data-footnote-id="' + safeId + '"><a href="#fn-' + safeId + '">[' + index + "]</a></sup>";
+            });
+        }
+
+        function formatInline(text, state = null) {
+            let html = escapeHtml(text)
+                .replace(/!\[(.*?)\]\((.+?)\)/g, '<img src="$2" alt="$1">')
+                .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+                .replace(/\*(.+?)\*/g, "<em>$1</em>")
+                .replace(/`([^`]+)`/g, "<code>$1</code>")
+                .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2">$1</a>');
+
+            if (modeSupports("gfm")) {
+                html = html.replace(/~~(.+?)~~/g, "<del>$1</del>");
+                html = applyAutoLink(html);
+            }
+            if (modeSupports("typora")) {
+                html = html.replace(/==(.+?)==/g, "<mark>$1</mark>");
+                html = applyInlineMath(html);
+                if (state) {
+                    html = applyFootnoteRefs(html, state);
+                }
+            }
+            return html;
+        }
+
+        function splitTableRow(line) {
+            const trimmed = (line || "").trim();
+            if (!trimmed.length) return [];
+            const normalized = trimmed.replace(/^\|/, "").replace(/\|$/, "");
+            if (!normalized.length) return [];
+            return normalized.split("|").map(cell => cell.trim());
+        }
+
+        function normalizeCells(cells, columnCount) {
+            const normalized = cells.slice(0, columnCount);
+            while (normalized.length < columnCount) {
+                normalized.push("");
+            }
+            return normalized;
+        }
+
+        function isTableSeparator(line) {
+            if (!line) return false;
+            const trimmed = line.trim();
+            if (!trimmed.length) return false;
+            return /^\|?(?:\s*:?-{3,}:?\s*\|)+\s*$/.test(trimmed);
+        }
+
+        function looksLikeTableHeader(line) {
+            if (!line || line.indexOf("|") === -1) return false;
+            const trimmed = line.trim();
+            if (!trimmed.length || trimmed.startsWith(">")) return false;
+            const cells = splitTableRow(line);
+            return cells.length > 1;
+        }
+
+        function isTableBodyLine(line) {
+            if (!line) return false;
+            const trimmed = line.trim();
+            if (!trimmed.length) return false;
+            return trimmed.indexOf("|") !== -1;
+        }
+
+        function parseTableAlignments(line, columnCount) {
+            const tokens = splitTableRow(line);
+            const alignments = [];
+            const tokenRecord = [];
+            for (let i = 0; i < columnCount; i++) {
+                const token = (tokens[i] || "").trim();
+                tokenRecord.push(token.length ? token : "---");
+                const starts = token.startsWith(":");
+                const ends = token.endsWith(":");
+                if (starts && ends) alignments.push("center");
+                else if (starts) alignments.push("left");
+                else if (ends) alignments.push("right");
+                else alignments.push("left");
+            }
+            return { alignments, tokens: tokenRecord };
+        }
+
+        function renderTable(headerCells, bodyRows, alignmentData) {
+            const columnCount = headerCells.length;
+            const normalizedBody = bodyRows.map(row => normalizeCells(row, columnCount));
+            const safeBody = normalizedBody.length ? normalizedBody : [new Array(columnCount).fill("")];
+            const alignAttr = escapeHtml((alignmentData.tokens || []).slice(0, columnCount).join(","));
+            let html = '<table class="ty-table" data-align-tokens="' + alignAttr + '">';
+            html += "<thead><tr>";
+            headerCells.forEach((cell, index) => {
+                const align = alignmentData.alignments[index] || "left";
+                html += '<th data-align="' + align + '">' + formatInline(cell) + "</th>";
+            });
+            html += "</tr></thead><tbody>";
+            safeBody.forEach(row => {
+                html += "<tr>";
+                row.forEach((cell, index) => {
+                    const align = alignmentData.alignments[index] || "left";
+                    html += '<td data-align="' + align + '">' + formatInline(cell) + "</td>";
+                });
+                html += "</tr>";
+            });
+            html += "</tbody></table>";
+            return html;
+        }
+
+        function parseFootnoteDefinitions(lines) {
+            const defs = new Map();
+            const filtered = [];
+
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i] || "";
+                const match = line.match(/^\[\^([^\]\s]+)\]:\s*(.*)$/);
+                if (!match) {
+                    filtered.push(line);
+                    continue;
+                }
+
+                const id = (match[1] || "").trim();
+                if (!id.length) {
+                    filtered.push(line);
+                    continue;
+                }
+
+                const chunks = [match[2] || ""];
+                while (i + 1 < lines.length) {
+                    const next = lines[i + 1] || "";
+                    if (/^\s{2,}\S/.test(next)) {
+                        chunks.push(next.replace(/^\s{2,}/, ""));
+                        i++;
+                        continue;
+                    }
+                    break;
+                }
+                defs.set(id, chunks.join("\n").trim());
+            }
+
+            return { lines: filtered, defs };
+        }
+
+        function renderFootnotes(state) {
+            if (!state || !state.footnoteOrder.length) return "";
+            let html = '<section class="footnotes"><ol>';
+            state.footnoteOrder.forEach(id => {
+                const safeId = escapeHtml(id);
+                const content = state.footnoteDefs.get(id) || "";
+                html += '<li id="fn-' + safeId + '">';
+                html += formatInline(content, null);
+                html += '<a class="footnote-backref" href="#">↩</a>';
+                html += "</li>";
+            });
+            html += "</ol></section>";
+            return html;
+        }
+
+        function parseFrontMatter(lines) {
+            if (!modeSupports("typora") || lines.length < 3) {
+                return { lines, block: "" };
+            }
+            if ((lines[0] || "").trim() !== "---") {
+                return { lines, block: "" };
+            }
+
+            let end = -1;
+            for (let i = 1; i < lines.length; i++) {
+                if ((lines[i] || "").trim() === "---") {
+                    end = i;
+                    break;
+                }
+            }
+            if (end < 1) {
+                return { lines, block: "" };
+            }
+
+            const payload = lines.slice(1, end).join("\n");
+            const rest = lines.slice(end + 1);
+            const block = '<section class="frontmatter" data-frontmatter="1"><pre><code class="language-yaml">'
+                + escapeHtml(payload)
+                + "</code></pre></section>";
+            return { lines: rest, block };
+        }
+
+        function parseBlockquoteLine(line) {
+            const match = (line || "").match(/^\s*>\s?(.*)$/);
+            return match ? match[1] : null;
+        }
+
+        function headingSlugFromText(text) {
+            const raw = (text || "").trim().toLowerCase();
+            if (!raw.length) return "section";
+            const collapsed = raw
+                .replace(/<[^>]+>/g, "")
+                .replace(/[^\p{Letter}\p{Number}\s\-\u4e00-\u9fff\u3040-\u30ff]+/gu, "")
+                .replace(/\s+/g, "-")
+                .replace(/-+/g, "-");
+            return collapsed.length ? collapsed : "section";
+        }
+
+        function renderHeading(level, content, headingState, inlineState = null) {
+            const safeLevel = Math.max(1, Math.min(6, level));
+            const slugBase = headingSlugFromText(content);
+            const count = headingState.get(slugBase) || 0;
+            headingState.set(slugBase, count + 1);
+            const slug = count ? `${slugBase}-${count + 1}` : slugBase;
+            return `<h${safeLevel} id="${escapeHtml(slug)}">${formatInline(content, inlineState)}</h${safeLevel}>`;
+        }
+
+        function parseRawHtmlBlock(lines, startIndex) {
+            const firstLine = lines[startIndex] || "";
+            const trimmed = firstLine.trim();
+            if (!trimmed.length || !trimmed.startsWith("<")) {
+                return null;
+            }
+
+            if (/^<!--/.test(trimmed)) {
+                const blocks = [firstLine];
+                if (/-->\s*$/.test(trimmed)) {
+                    return { kind: "raw", html: blocks.join("\n"), endIndex: startIndex };
+                }
+                let end = startIndex;
+                for (let i = startIndex + 1; i < lines.length; i++) {
+                    blocks.push(lines[i] || "");
+                    end = i;
+                    if (/-->\s*$/.test(lines[i] || "")) {
+                        break;
+                    }
+                }
+                return { kind: "raw", html: blocks.join("\n"), endIndex: end };
+            }
+
+            const tagMatch = trimmed.match(/^<([A-Za-z][A-Za-z0-9:_-]*)(\s[^>]*)?>\s*$/);
+            const oneLineTagMatch = trimmed.match(/^<([A-Za-z][A-Za-z0-9:_-]*)(\s[^>]*)?>[\s\S]*<\/\1>\s*$/);
+            const standaloneNode = /^<\/?[A-Za-z][A-Za-z0-9:_-]*(\s[^>]*)?\/?>\s*$/.test(trimmed);
+            const containerTagMatch = trimmed.match(/^<(div|section|article|aside)(\s[^>]*)?>\s*$/i);
+
+            if (oneLineTagMatch || /\/>\s*$/.test(trimmed)) {
+                return { kind: "raw", html: firstLine, endIndex: startIndex };
+            }
+
+            if (!tagMatch && !standaloneNode) {
+                return null;
+            }
+
+            if (standaloneNode && !tagMatch) {
+                return { kind: "raw", html: firstLine, endIndex: startIndex };
+            }
+
+            const tag = tagMatch ? tagMatch[1] : "";
+            if (!tag.length) {
+                return { kind: "raw", html: firstLine, endIndex: startIndex };
+            }
+
+            const closeRegex = new RegExp("</" + tag + "\\s*>", "i");
+            const blocks = [firstLine];
+            if (closeRegex.test(trimmed)) {
+                return { kind: "raw", html: blocks.join("\n"), endIndex: startIndex };
+            }
+
+            let end = startIndex;
+            for (let i = startIndex + 1; i < lines.length; i++) {
+                const line = lines[i] || "";
+                blocks.push(line);
+                end = i;
+                if (closeRegex.test(line)) {
+                    break;
+                }
+            }
+
+            if (containerTagMatch && blocks.length >= 2) {
+                const closing = blocks[blocks.length - 1].trim();
+                if (new RegExp("^</" + tag + "\\s*>$", "i").test(closing)) {
+                    return {
+                        kind: "markdown-container",
+                        openTag: firstLine,
+                        closeTag: blocks[blocks.length - 1],
+                        innerMarkdown: blocks.slice(1, blocks.length - 1).join("\n"),
+                        endIndex: end
+                    };
+                }
+            }
+
+            return { kind: "raw", html: blocks.join("\n"), endIndex: end };
+        }
+
+        function markdownToHtml(md, options = {}) {
+            const nestedContainer = !!options.nestedContainer;
+            const sourceLines = (md || "").split(/\r?\n/);
+            const frontMatterParsed = nestedContainer
+                ? { lines: sourceLines, block: "" }
+                : parseFrontMatter(sourceLines);
+            const footnoteParsed = modeSupports("typora")
+                ? parseFootnoteDefinitions(frontMatterParsed.lines)
+                : { lines: frontMatterParsed.lines, defs: new Map() };
+            const lines = footnoteParsed.lines;
+            const inlineState = {
+                footnoteDefs: footnoteParsed.defs,
+                footnoteRefs: new Map(),
+                footnoteOrder: []
+            };
+            const headingState = new Map();
+            let html = frontMatterParsed.block || "";
+            let currentList = null; // "ul" | "ol" | "task" | null
+            let inCode = false;
+            let codeFence = "```";
+            let inMathBlock = false;
+            let mathLines = [];
+            const fencePattern = /^\s*(```+|~~~+)(.*)$/;
+            const hrPattern = /^\s*(?:(\*\s*){3,}|(-\s*){3,}|(_\s*){3,})$/;
+            const setextH1Pattern = /^\s*=+\s*$/;
+            const setextH2Pattern = /^\s*-+\s*$/;
+
+            const closeList = () => {
+                if (!currentList) return;
+                if (currentList === "ol") html += "</ol>";
+                else html += "</ul>";
+                currentList = null;
+            };
+
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i] || "";
+
+                if (!inCode && !inMathBlock) {
+                    const nextLine = i + 1 < lines.length ? (lines[i + 1] || "") : "";
+                    if (line.trim().length && setextH1Pattern.test(nextLine)) {
+                        closeList();
+                        html += renderHeading(1, line.trim(), headingState, inlineState);
+                        i += 1;
+                        continue;
+                    }
+                    if (line.trim().length && setextH2Pattern.test(nextLine)) {
+                        closeList();
+                        html += renderHeading(2, line.trim(), headingState, inlineState);
+                        i += 1;
+                        continue;
+                    }
+                }
+
+                if (modeSupports("typora") && /^\s*\$\$\s*$/.test(line)) {
+                    closeList();
+                    if (!inMathBlock) {
+                        inMathBlock = true;
+                        mathLines = [];
+                    } else {
+                        const expr = mathLines.join("\n").trim();
+                        const safeExpr = escapeHtml(expr);
+                        html += '<div class="math-block" data-math="' + safeExpr + '">' + safeExpr + "</div>";
+                        inMathBlock = false;
+                        mathLines = [];
+                    }
+                    continue;
+                }
+
+                if (inMathBlock) {
+                    mathLines.push(line);
+                    continue;
+                }
+
+                if (!inCode && !inMathBlock) {
+                    const htmlBlock = parseRawHtmlBlock(lines, i);
+                    if (htmlBlock) {
+                        closeList();
+                        if (htmlBlock.kind === "markdown-container") {
+                            const innerHtml = markdownToHtml(htmlBlock.innerMarkdown, { nestedContainer: true });
+                            html += htmlBlock.openTag + innerHtml + htmlBlock.closeTag;
+                        } else {
+                            html += htmlBlock.html;
+                        }
+                        i = htmlBlock.endIndex;
+                        continue;
+                    }
+                }
+
+                const fenceMatch = line.match(fencePattern);
+                if (fenceMatch) {
+                    closeList();
+                    if (!inCode) {
+                        codeFence = fenceMatch[1] || "```";
+                        const langRaw = (fenceMatch[2] || "").trim();
+                        const normalizedClass = normalizeLanguageName(langRaw);
+                        const langAttr = langRaw.length
+                            ? ' data-lang="' + escapeHtml(langRaw) + '"'
+                            : "";
+                        const classAttr = normalizedClass.length
+                            ? ' class="language-' + escapeHtml(normalizedClass) + '"'
+                            : "";
+                        const fenceAttr = ' data-fence="' + (codeFence.startsWith("~~~") ? "~~~" : "```") + '"';
+                        html += "<pre" + langAttr + fenceAttr + "><code" + classAttr + ">";
+                        inCode = true;
+                    } else {
+                        html += "</code></pre>";
+                        inCode = false;
+                    }
+                    continue;
+                }
+                if (inCode) {
+                    html += escapeHtml(line) + "\n";
+                    continue;
+                }
+
+                if (modeSupports("gfm") && looksLikeTableHeader(line) && i + 1 < lines.length && isTableSeparator(lines[i + 1])) {
+                    closeList();
+                    const headerCells = splitTableRow(line);
+                    const alignmentData = parseTableAlignments(lines[i + 1], headerCells.length);
+                    i += 2;
+                    const bodyRows = [];
+                    while (i < lines.length && isTableBodyLine(lines[i])) {
+                        bodyRows.push(splitTableRow(lines[i]));
+                        i++;
+                    }
+                    i--;
+                    html += renderTable(headerCells, bodyRows, alignmentData);
+                    continue;
+                }
+
+                if (hrPattern.test(line.trim())) {
+                    closeList();
+                    html += "<hr/>";
+                    continue;
+                }
+
+                const taskMatch = modeSupports("gfm") ? line.match(/^\s*[-*+]\s+\[( |x|X)\]\s+(.*)$/) : null;
+                if (taskMatch) {
+                    if (currentList !== "task") {
+                        closeList();
+                        html += '<ul class="task-list">';
+                        currentList = "task";
+                    }
+                    const checked = taskMatch[1].toLowerCase() === "x";
+                    const content = formatInline(taskMatch[2], inlineState);
+                    html += '<li class="task-list-item"><input type="checkbox" disabled' + (checked ? " checked" : "") + "> " + content + "</li>";
+                    continue;
+                }
+
+                const olMatch = line.match(/^\s*\d+\.\s+(.*)$/);
+                if (olMatch) {
+                    const start = parseInt(line.trim().match(/^(\d+)\./)[1], 10);
+                    if (currentList !== "ol") {
+                        closeList();
+                        html += start > 1 ? ('<ol start="' + start + '">') : "<ol>";
+                        currentList = "ol";
+                    }
+                    html += "<li>" + formatInline(olMatch[1], inlineState) + "</li>";
+                    continue;
+                }
+
+                const ulMatch = line.match(/^\s*[-*+]\s+(.*)$/);
+                if (ulMatch) {
+                    if (currentList !== "ul") {
+                        closeList();
+                        html += "<ul>";
+                        currentList = "ul";
+                    }
+                    html += "<li>" + formatInline(ulMatch[1], inlineState) + "</li>";
+                    continue;
+                } else {
+                    closeList();
+                }
+
+                if (modeSupports("typora") && i + 1 < lines.length && /^\s*:\s+/.test(lines[i + 1] || "")) {
+                    closeList();
+                    html += "<dl><dt>" + formatInline(line.trim(), inlineState) + "</dt>";
+                    while (i + 1 < lines.length && /^\s*:\s+/.test(lines[i + 1] || "")) {
+                        const defLine = (lines[i + 1] || "").replace(/^\s*:\s+/, "");
+                        html += "<dd>" + formatInline(defLine, inlineState) + "</dd>";
+                        i += 1;
+                    }
+                    html += "</dl>";
+                    continue;
+                }
+
+                if (/^######\s+/.test(line)) html += renderHeading(6, line.replace(/^######\s+/, ""), headingState, inlineState);
+                else if (/^#####\s+/.test(line)) html += renderHeading(5, line.replace(/^#####\s+/, ""), headingState, inlineState);
+                else if (/^####\s+/.test(line)) html += renderHeading(4, line.replace(/^####\s+/, ""), headingState, inlineState);
+                else if (/^###\s+/.test(line)) html += renderHeading(3, line.replace(/^###\s+/, ""), headingState, inlineState);
+                else if (/^##\s+/.test(line)) html += renderHeading(2, line.replace(/^##\s+/, ""), headingState, inlineState);
+                else if (/^#\s+/.test(line)) html += renderHeading(1, line.replace(/^#\s+/, ""), headingState, inlineState);
+                else if (/^\s*>\s?/.test(line)) {
+                    closeList();
+                    const quoteLines = [];
+                    while (i < lines.length) {
+                        const content = parseBlockquoteLine(lines[i]);
+                        if (content === null) break;
+                        quoteLines.push(content);
+                        i += 1;
+                    }
+                    i -= 1;
+                    const quoteHtml = quoteLines.map(quoteLine => {
+                        if (!quoteLine.trim().length) return "<p><br/></p>";
+                        return "<p>" + formatInline(quoteLine, inlineState) + "</p>";
+                    }).join("");
+                    html += "<blockquote>" + quoteHtml + "</blockquote>";
+                }
+                else if (line.trim() === "") {
+                    closeList();
+                    html += "<p><br/></p>";
+                }
+                else html += "<p>" + formatInline(line, inlineState) + "</p>";
+            }
+
+            closeList();
+            if (inCode) html += "</code></pre>";
+            if (inMathBlock) {
+                const expr = mathLines.join("\n").trim();
+                if (expr.length) {
+                    const safeExpr = escapeHtml(expr);
+                    html += '<div class="math-block" data-math="' + safeExpr + '">' + safeExpr + "</div>";
+                }
+            }
+            if (!nestedContainer && modeSupports("typora")) {
+                html += renderFootnotes(inlineState);
+            }
+            return html;
+        }
+
+        function alignmentTokenFromName(name) {
+            const normalized = (name || "").toLowerCase();
+            if (normalized === "center") return ":---:";
+            if (normalized === "right") return "---:";
+            return ":---";
+        }
+
+        function escapeTableCell(text) {
+            return (text || "").trim().replace(/\|/g, "\\|").replace(/\r?\n/g, " ");
+        }
+
+        function tableToMarkdown(table) {
+            const headerRow = table.querySelector("thead tr") || table.querySelector("tr");
+            if (!headerRow) return [];
+            const headerCells = Array.from(headerRow.cells);
+            if (!headerCells.length) return [];
+            const columnCount = headerCells.length;
+            const tokenAttr = table.getAttribute("data-align-tokens") || "";
+            let alignTokens = tokenAttr.split(",").map(token => token.trim()).filter(token => token.length);
+            if (!alignTokens.length) {
+                alignTokens = headerCells.map(cell => alignmentTokenFromName(cell.getAttribute("data-align") || "left"));
+            }
+            while (alignTokens.length < columnCount) {
+                alignTokens.push(alignmentTokenFromName("left"));
+            }
+            alignTokens = alignTokens.slice(0, columnCount);
+
+            const headerLine = "| " + headerCells.map(cell => escapeTableCell(cell.textContent)).join(" | ") + " |";
+
+            const rows = [];
+            const sourceRows = table.querySelectorAll("tbody tr");
+            const bodyRows = sourceRows.length ? Array.from(sourceRows) : Array.from(table.querySelectorAll("tr")).slice(1);
+            bodyRows.forEach(row => {
+                const cells = Array.from(row.cells).map(cell => escapeTableCell(cell.textContent));
+                while (cells.length < columnCount) {
+                    cells.push("");
+                }
+                rows.push("| " + cells.slice(0, columnCount).join(" | ") + " |");
+            });
+            if (!rows.length) {
+                rows.push("| " + new Array(columnCount).fill(" ").join(" | ") + " |");
+            }
+
+            return [
+                headerLine,
+                "| " + alignTokens.join(" | ") + " |",
+                ...rows,
+                ""
+            ];
+        }
+
+        function inlineToMarkdown(node) {
+            if (node.nodeType === Node.TEXT_NODE) {
+                return node.nodeValue || "";
+            }
+            if (node.nodeType !== Node.ELEMENT_NODE) {
+                return "";
+            }
+
+            const childText = () => Array.from(node.childNodes).map(inlineToMarkdown).join("");
+
+            switch (node.nodeName) {
+            case "STRONG":
+            case "B":
+                return "**" + childText() + "**";
+            case "EM":
+            case "I":
+                return "*" + childText() + "*";
+            case "DEL":
+                return modeSupports("gfm") ? ("~~" + childText() + "~~") : childText();
+            case "MARK":
+                return modeSupports("typora") ? ("==" + childText() + "==") : childText();
+            case "CODE":
+                return "`" + childText() + "`";
+            case "SPAN": {
+                if (node.classList.contains("math-inline") && modeSupports("typora")) {
+                    const expr = node.getAttribute("data-math") || node.textContent || "";
+                    return "$" + expr + "$";
+                }
+                return childText();
+            }
+            case "SUP": {
+                if (node.classList.contains("footnote-ref") && modeSupports("typora")) {
+                    const id = node.getAttribute("data-footnote-id") || "";
+                    return id.length ? ("[^" + id + "]") : childText();
+                }
+                return childText();
+            }
+            case "A": {
+                const href = node.getAttribute("href") || "";
+                const text = childText().trim();
+                if (modeSupports("gfm") && text === href && /^https?:\/\//.test(href)) {
+                    return href;
+                }
+                return "[" + text + "](" + href + ")";
+            }
+            case "IMG": {
+                const alt = node.getAttribute("alt") || "";
+                const src = node.getAttribute("src") || "";
+                return "![" + alt + "](" + src + ")";
+            }
+            case "BR":
+                return "  \n";
+            default:
+                return childText();
+            }
+        }
+
+        function inlineChildrenToMarkdown(node) {
+            return Array.from(node.childNodes).map(inlineToMarkdown).join("");
+        }
+
+        function htmlToMarkdown(html) {
+            const container = document.createElement("div");
+            container.innerHTML = html;
+            const lines = [];
+            const footnoteDefs = [];
+            const rawContainerTags = new Set(["DIV", "SECTION", "ARTICLE", "ASIDE", "HEADER", "FOOTER", "NAV", "DETAILS", "SUMMARY", "FIGURE", "FIGCAPTION", "CENTER"]);
+
+            const pushBlank = () => {
+                if (lines.length && lines[lines.length - 1] !== "") {
+                    lines.push("");
+                }
+            };
+
+            const isEditorInternalRawNode = (node) => {
+                if (!node || node.nodeType !== Node.ELEMENT_NODE) return false;
+                if (node.nodeName === "DIV" && node.classList.contains("math-block")) return true;
+                if (node.nodeName === "SECTION" && node.classList.contains("frontmatter")) return true;
+                if (node.nodeName === "SECTION" && node.classList.contains("footnotes")) return true;
+                return false;
+            };
+
+            const openTagText = (node) => {
+                const tag = (node.nodeName || "div").toLowerCase();
+                const attrs = Array.from(node.attributes || []).map(attr => `${attr.name}="${attr.value.replace(/"/g, "&quot;")}"`);
+                return attrs.length ? `<${tag} ${attrs.join(" ")}>` : `<${tag}>`;
+            };
+
+            const closeTagText = (node) => {
+                const tag = (node.nodeName || "div").toLowerCase();
+                return `</${tag}>`;
+            };
+
+            const serializeHtmlContainer = (node) => {
+                lines.push(openTagText(node));
+                Array.from(node.childNodes).forEach(walk);
+                lines.push(closeTagText(node));
+                pushBlank();
+            };
+
+            function handleList(node, ordered, isTask) {
+                const items = Array.from(node.querySelectorAll(":scope > li"));
+                let index = ordered ? parseInt(node.getAttribute("start") || "1", 10) : 1;
+                items.forEach((li) => {
+                    const checkbox = isTask ? li.querySelector('input[type="checkbox"]') : null;
+                    const checked = checkbox ? checkbox.checked : false;
+                    const content = Array.from(li.childNodes)
+                        .filter(child => !(child.nodeType === Node.ELEMENT_NODE && child.nodeName === "INPUT"))
+                        .map(inlineToMarkdown)
+                        .join("")
+                        .trim();
+                    if (isTask) {
+                        lines.push(`- [${checked ? "x" : " "}] ${content}`);
+                    } else if (ordered) {
+                        lines.push(`${index}. ${content}`);
+                        index += 1;
+                    } else {
+                        lines.push(`- ${content}`);
+                    }
+                });
+                pushBlank();
+            }
+
+            function walk(node) {
+                if (node.nodeType === Node.TEXT_NODE) {
+                    const text = (node.nodeValue || "").trim();
+                    if (text.length) lines.push(text);
+                    return;
+                }
+                if (node.nodeType !== Node.ELEMENT_NODE)
+                    return;
+
+                switch (node.nodeName) {
+                case "H1":
+                case "H2":
+                case "H3":
+                case "H4":
+                case "H5":
+                case "H6": {
+                    const level = parseInt(node.nodeName.substring(1), 10);
+                    lines.push("#".repeat(level) + " " + inlineChildrenToMarkdown(node).trim());
+                    pushBlank();
+                    break;
+                }
+                case "P": {
+                    const text = inlineChildrenToMarkdown(node).trim();
+                    lines.push(text.length ? text : "");
+                    pushBlank();
+                    break;
+                }
+                case "BLOCKQUOTE": {
+                    const blockLines = [];
+                    Array.from(node.childNodes).forEach(child => {
+                        if (child.nodeType === Node.ELEMENT_NODE && child.nodeName === "P") {
+                            const line = inlineChildrenToMarkdown(child).trim();
+                            blockLines.push(line);
+                            return;
+                        }
+                        const line = inlineToMarkdown(child).trim();
+                        blockLines.push(line);
+                    });
+                    if (!blockLines.length) {
+                        blockLines.push("");
+                    }
+                    blockLines.forEach(l => lines.push("> " + l));
+                    pushBlank();
+                    break;
+                }
+                case "PRE": {
+                    const lang = (node.getAttribute("data-lang") || "").trim();
+                    const fence = (node.getAttribute("data-fence") || "```").trim() === "~~~" ? "~~~" : "```";
+                    const code = node.textContent.replace(/\r?\n$/, "");
+                    lines.push(lang.length ? (fence + lang) : fence);
+                    lines.push(code);
+                    lines.push(fence);
+                    pushBlank();
+                    break;
+                }
+                case "DIV": {
+                    if (node.classList.contains("math-block") && modeSupports("typora")) {
+                        const expr = (node.getAttribute("data-math") || node.textContent || "").replace(/\r/g, "").trim();
+                        lines.push("$$");
+                        lines.push(expr);
+                        lines.push("$$");
+                        pushBlank();
+                        break;
+                    }
+                    serializeHtmlContainer(node);
+                    break;
+                }
+                case "HR":
+                    lines.push("---");
+                    pushBlank();
+                    break;
+                case "UL": {
+                    const isTask = node.classList.contains("task-list");
+                    handleList(node, false, isTask);
+                    break;
+                }
+                case "OL":
+                    handleList(node, true, false);
+                    break;
+                case "TABLE": {
+                    const tableLines = tableToMarkdown(node);
+                    if (tableLines.length) {
+                        lines.push(...tableLines);
+                        pushBlank();
+                    }
+                    break;
+                }
+                case "DL": {
+                    if (modeSupports("typora")) {
+                        const terms = Array.from(node.querySelectorAll(":scope > dt"));
+                        terms.forEach(dt => {
+                            const term = inlineChildrenToMarkdown(dt).trim();
+                            if (!term.length) return;
+                            lines.push(term);
+                            let next = dt.nextElementSibling;
+                            while (next && next.nodeName === "DD") {
+                                const def = inlineChildrenToMarkdown(next).trim();
+                                lines.push(": " + def);
+                                next = next.nextElementSibling;
+                            }
+                            pushBlank();
+                        });
+                        break;
+                    }
+                    Array.from(node.childNodes).forEach(walk);
+                    break;
+                }
+                case "SECTION": {
+                    if (node.classList.contains("frontmatter") && modeSupports("typora")) {
+                        const codeNode = node.querySelector("pre code");
+                        const payload = codeNode ? (codeNode.textContent || "").replace(/\r/g, "") : "";
+                        lines.push("---");
+                        if (payload.length) {
+                            lines.push(payload);
+                        }
+                        lines.push("---");
+                        pushBlank();
+                        break;
+                    }
+                    if (node.classList.contains("footnotes") && modeSupports("typora")) {
+                        const items = Array.from(node.querySelectorAll("li[id^='fn-']"));
+                        items.forEach(item => {
+                            const id = (item.id || "").replace(/^fn-/, "").trim();
+                            if (!id.length) return;
+                            const clone = item.cloneNode(true);
+                            const backRef = clone.querySelector(".footnote-backref");
+                            if (backRef) backRef.remove();
+                            const text = inlineChildrenToMarkdown(clone).trim();
+                            footnoteDefs.push("[^" + id + "]: " + text);
+                        });
+                        break;
+                    }
+                    serializeHtmlContainer(node);
+                    break;
+                }
+                default:
+                    if (!isEditorInternalRawNode(node) && rawContainerTags.has(node.nodeName)) {
+                        serializeHtmlContainer(node);
+                        break;
+                    }
+                    Array.from(node.childNodes).forEach(walk);
+                }
+            }
+
+            Array.from(container.childNodes).forEach(walk);
+            if (modeSupports("typora") && footnoteDefs.length) {
+                pushBlank();
+                lines.push(...footnoteDefs);
+            }
+            return lines.join("\n").replace(/\n{3,}/g, "\n\n").trim();
+        }
+
+        function wrapSelectionWith(before, after, placeholder = "") {
+            const selection = window.getSelection();
+            const text = selection && selection.toString().length
+                ? selection.toString()
+                : placeholder;
+            document.execCommand("insertHTML", false, before + escapeHtml(text) + after);
+        }
+
+        function currentCursorLine() {
+            const selection = window.getSelection();
+            if (!selection || selection.rangeCount === 0) return 1;
+            const range = selection.getRangeAt(0).cloneRange();
+            const preRange = range.cloneRange();
+            preRange.selectNodeContents(editor);
+            preRange.setEnd(range.startContainer, range.startOffset);
+            const text = preRange.toString().replace(/\r/g, "");
+            if (!text.length) return 1;
+            return text.split("\n").length;
+        }
+
+        const cjkCharRegex = /[\u3400-\u4DBF\u4E00-\u9FFF\u3040-\u30FF\uAC00-\uD7AF]/;
+        const mathSymbolRegex = /[\u2200-\u22FF]/;
+        const asciiWordRegex = /[A-Za-z0-9_'\-]/;
+
+        function wordCountFromMarkdown(md) {
+            if (!md) return 0;
+            let count = 0;
+            let inAsciiWord = false;
+            for (const ch of md) {
+                if (/\s/.test(ch)) {
+                    if (inAsciiWord) {
+                        count++;
+                        inAsciiWord = false;
+                    }
+                    continue;
+                }
+                if (cjkCharRegex.test(ch)) {
+                    if (inAsciiWord) {
+                        count++;
+                        inAsciiWord = false;
+                    }
+                    count++;
+                    continue;
+                }
+                if (mathSymbolRegex.test(ch)) {
+                    if (inAsciiWord) {
+                        count++;
+                        inAsciiWord = false;
+                    }
+                    count++;
+                    continue;
+                }
+                if (asciiWordRegex.test(ch)) {
+                    inAsciiWord = true;
+                    continue;
+                }
+                if (inAsciiWord) {
+                    count++;
+                    inAsciiWord = false;
+                }
+            }
+            if (inAsciiWord) count++;
+            return count;
+        }
+
+        let cursorStateHandle = 0;
+
+        function notifyCursorState() {
+            if (!qtBridge || !qtBridge.notifyCursorState) return;
+            const line = currentCursorLine();
+            const words = wordCountFromMarkdown(currentMarkdown);
+            qtBridge.notifyCursorState(line, words);
+        }
+
+        function scheduleCursorState() {
+            if (cursorStateHandle) {
+                cancelAnimationFrame(cursorStateHandle);
+            }
+            cursorStateHandle = requestAnimationFrame(() => {
+                cursorStateHandle = 0;
+                notifyCursorState();
+            });
+        }
+
+        function insertCodeBlockHtml() {
+            const selection = window.getSelection();
+            const text = selection && selection.toString().trim().length
+                ? selection.toString()
+                : "代码内容";
+            const langInput = window.prompt("输入代码块语言（如 bash、python，可留空）：", "");
+            const lang = (langInput || "").trim();
+            const langAttr = lang.length ? ' data-lang="' + escapeHtml(lang) + '"' : "";
+            const className = normalizeLanguageName(lang);
+            const classAttr = className.length ? ' class="language-' + escapeHtml(className) + '"' : "";
+            const html = "<pre" + langAttr + "><code" + classAttr + ">" + escapeHtml(text) + "</code></pre><p><br/></p>";
+            document.execCommand("insertHTML", false, html);
+        }
+
+        function insertLinkHtml(url) {
+            const selection = window.getSelection();
+            const label = selection && selection.toString().length
+                ? selection.toString()
+                : (url || "链接");
+            const safeUrl = escapeHtml(url || "https://");
+            const safeLabel = escapeHtml(label);
+            document.execCommand("insertHTML", false, '<a href="' + safeUrl + '">' + safeLabel + "</a>");
+        }
+
+        function scrollToHeading(text, level) {
+            const trimmed = (text || "").trim();
+            if (!trimmed.length) return;
+            let selector = "h1,h2,h3,h4,h5,h6";
+            if (level >= 1 && level <= 6) {
+                selector = "h" + level;
+            }
+            const nodes = editor.querySelectorAll(selector);
+            for (const node of nodes) {
+                if (node.textContent.trim() === trimmed) {
+                    node.scrollIntoView({ behavior: "smooth", block: "center" });
+                    const range = document.createRange();
+                    range.selectNodeContents(node);
+                    range.collapse(false);
+                    const sel = window.getSelection();
+                    sel.removeAllRanges();
+                    sel.addRange(range);
+                    editor.focus();
+                    break;
+                }
+            }
+        }
+
+        function scrollToHashTarget(hashValue) {
+            const raw = (hashValue || "").toString().trim();
+            if (!raw.startsWith("#") || raw.length < 2) return false;
+            const targetId = decodeURIComponent(raw.slice(1));
+            if (!targetId.length) return false;
+            const escaped = (window.CSS && CSS.escape) ? CSS.escape(targetId) : targetId.replace(/["'\\]/g, "\\$&");
+            const node = editor.querySelector("#" + escaped);
+            if (!node) return false;
+            node.scrollIntoView({ behavior: "smooth", block: "start" });
+            return true;
+        }
+
+        function syncFromMarkdown(markdown) {
+            suppressChange = true;
+            currentMarkdown = markdown || "";
+            if (plainMode) {
+                editor.innerHTML = plainLanguage
+                    ? renderPlainCodeDocument(currentMarkdown, plainLanguage)
+                    : renderPlainTextDocument(currentMarkdown);
+            } else {
+                editor.innerHTML = markdownToHtml(currentMarkdown);
+                decorateCenteredBlocks();
+                scheduleDecorateCodeBlocks();
+            }
+            setTimeout(() => {
+                suppressChange = false;
+                scheduleCursorState();
+            }, 0);
+        }
+
+        editor.addEventListener("input", () => {
+            if (suppressChange) return;
+            const md = plainMode ? extractPlainText() : htmlToMarkdown(editor.innerHTML);
+            currentMarkdown = md;
+            if (qtBridge) qtBridge.notifyContentChanged(md);
+            window.parent.postMessage({ type: "contentChanged", content: md }, "*");
+            scheduleCursorState();
+        });
+
+        editor.addEventListener("click", (event) => {
+            const target = event.target && event.target.closest ? event.target.closest("a[href]") : null;
+            if (!target) return;
+            const href = target.getAttribute("href") || "";
+            if (href.startsWith("#")) {
+                event.preventDefault();
+                scrollToHashTarget(href);
+            }
+        });
+
+        document.addEventListener("selectionchange", () => {
+            scheduleCursorState();
+        });
+
+        ["keyup", "mouseup", "focus", "compositionend"].forEach(eventName => {
+            editor.addEventListener(eventName, scheduleCursorState);
+        });
+
+        if (window.qt && window.QWebChannel) {
+            new QWebChannel(qt.webChannelTransport, channel => {
+                qtBridge = channel.objects.editorBridge;
+                if (qtBridge.requestInitialContent) {
+                    qtBridge.requestInitialContent();
+                }
+            });
+        }
+
+        window.addEventListener("message", event => {
+            const data = event.data || {};
+            if (data.type === "setMarkdown") {
+                syncFromMarkdown(data.content || "");
+            }
+            if (data.type === "setPlainMode") {
+                setPlainMode(Boolean(data.enabled), data.language || "");
+            }
+            if (data.type === "setMarkdownMode") {
+                setMarkdownMode(data.mode || "typora");
+            }
+        });
+
+        window.TyporaEditor = {
+            setMarkdown: syncFromMarkdown,
+            getMarkdown: () => plainMode ? extractPlainText() : htmlToMarkdown(editor.innerHTML),
+            applyTheme: applyThemePalette,
+            setPlainMode: setPlainMode,
+            setMarkdownMode: setMarkdownMode,
+            execCommand: payload => {
+                if (!payload) return;
+                if (typeof payload === "string") {
+                    payload = { command: payload };
+                }
+                const command = payload.command;
+                if (!command) return;
+
+                let notifyChange = true;
+                switch (command) {
+                    case "bold":
+                        document.execCommand("bold");
+                        break;
+                    case "italic":
+                        document.execCommand("italic");
+                        break;
+                    case "unordered-list":
+                        document.execCommand("insertUnorderedList");
+                        break;
+                    case "inline-code":
+                        wrapSelectionWith("<code>", "</code>", "code");
+                        break;
+                    case "code-block":
+                        insertCodeBlockHtml();
+                        break;
+                    case "insert-link":
+                        insertLinkHtml(payload.value || "");
+                        break;
+                    case "heading": {
+                        const level = Math.min(Math.max(parseInt(payload.level || 1, 10), 1), 6);
+                        document.execCommand("formatBlock", false, "H" + level);
+                        break;
+                    }
+                    case "blockquote":
+                        document.execCommand("formatBlock", false, "BLOCKQUOTE");
+                        break;
+                    case "scroll-to-heading":
+                        notifyChange = false;
+                        scrollToHeading(payload.value || "", payload.level || 0);
+                        break;
+                    default:
+                        document.execCommand(command, false, payload.value || null);
+                }
+
+                if (notifyChange) {
+                    const md = plainMode ? extractPlainText() : htmlToMarkdown(editor.innerHTML);
+                    currentMarkdown = md;
+                    if (qtBridge) qtBridge.notifyContentChanged(md);
+                }
+                scheduleCursorState();
+            }
+        };
+
+        var decorateCodeHandle = 0;
+
+        function decorateCenteredBlocks() {
+            const sections = editor.querySelectorAll('[align="center"]');
+            sections.forEach(section => {
+                const paragraphs = Array.from(section.children).filter(node => node.nodeName === "P");
+                paragraphs.forEach((p, index) => {
+                    p.classList.remove("hero-subtitle", "lang-switch", "badge-row", "quick-links");
+                    const linkCount = p.querySelectorAll("a").length;
+                    const imageCount = p.querySelectorAll("img").length;
+                    const text = (p.textContent || "").replace(/\s+/g, " ").trim();
+
+                    if (imageCount >= 3) {
+                        p.classList.add("badge-row");
+                        return;
+                    }
+                    if (linkCount >= 3 && /#/.test(p.innerHTML)) {
+                        p.classList.add("quick-links");
+                        p.innerHTML = p.innerHTML.replace(/\s*[•·]\s*/g, '<span class="sep">•</span>');
+                        return;
+                    }
+                    if (linkCount >= 1 && linkCount <= 2 && text.length <= 28 && index <= 2) {
+                        p.classList.add("lang-switch");
+                        return;
+                    }
+                    if (!linkCount && text.length >= 18 && index <= 1) {
+                        p.classList.add("hero-subtitle");
+                    }
+                });
+            });
+        }
+
+        function scheduleDecorateCodeBlocks() {
+            if (decorateCodeHandle) {
+                cancelAnimationFrame(decorateCodeHandle);
+            }
+            decorateCodeHandle = requestAnimationFrame(() => {
+                decorateCodeHandle = 0;
+                decorateCodeBlocks();
+            });
+        }
+
+        function decorateCodeBlocks() {
+            const blocks = editor.querySelectorAll("pre code");
+            blocks.forEach(codeElem => {
+                const raw = codeElem.textContent || "";
+                const classAttr = codeElem.getAttribute("class") || "";
+                const dataLang = codeElem.getAttribute("data-lang") || "";
+                const classMatch = classAttr.match(/language-([a-z0-9\-\+\#]+)/i);
+                const lang = normalizeLanguageName(dataLang || (classMatch ? classMatch[1] : ""));
+                const normalizedRaw = raw.replace(/\r/g, "");
+                const lineCount = normalizedRaw.split("\n").length;
+                if (normalizedRaw.length > 12000 || lineCount > 320) {
+                    codeElem.textContent = normalizedRaw;
+                } else {
+                    const highlighted = highlightCode(normalizedRaw, lang);
+                    codeElem.innerHTML = highlighted;
+                }
+                const pre = codeElem.parentElement;
+                if (pre && lang.length) {
+                    pre.setAttribute("data-lang", lang);
+                }
+            });
+        }
+    </script>
+</body>
+</html>

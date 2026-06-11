@@ -3,34 +3,76 @@ name: Release
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
-  build-linux:
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v4
+  release:
+    name: Build ${{ matrix.label }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            label: Linux x64
+            target: x86_64-unknown-linux-gnu
+            bundles: deb,rpm
+          - os: windows-latest
+            label: Windows x64
+            target: x86_64-pc-windows-msvc
+            bundles: msi,nsis
+          - os: macos-latest
+            label: macOS Universal
+            target: universal-apple-darwin
+            bundles: dmg,app
 
-      - name: Install Qt and deps
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Enable pnpm
+        run: corepack enable pnpm
+
+      - name: Install Linux Tauri dependencies
+        if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y qtbase5-dev qtwebengine5-dev qtwebengine5-dev-tools libqt5webchannel5-dev imagemagick
+          sudo apt-get install -y \
+            desktop-file-utils \
+            libwebkit2gtk-4.0-dev \
+            libappindicator3-dev \
+            librsvg2-dev \
+            patchelf
 
-      - name: Convert icon svg -> png -> ico
-        run: |
-          mkdir -p src/resources
-          convert src/resources/icon.svg src/resources/icon.png
-          convert src/resources/icon.svg src/resources/icon.ico || true
-
-      - name: Build and package (deb)
-        run: |
-          bash scripts/build.sh build
-
-      - name: Create Release (deb)
-        uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@v2
         with:
-          files: |
-            build/md-editor-*.deb
+          workspaces: src-tauri -> target
+
+      - name: Install frontend dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Tauri bundles
+        uses: tauri-apps/tauri-action@v0
         env:
-          GITHUB_TOKEN: ${{ secrets.MD }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          projectPath: .
+          tagName: ${{ github.ref_name }}
+          releaseName: md-editor ${{ github.ref_name }}
+          releaseBody: "See generated release notes for changes."
+          releaseDraft: true
+          prerelease: false
+          args: --target ${{ matrix.target }} --bundles ${{ matrix.bundles }}

@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="styles.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>md-editor</title>
+    <script type="module" src="/main.js" defer></script>
+  </head>
+  <body>
+    <main class="app-shell">
+      <aside class="sidebar" aria-label="Workspace sidebar">
+        <div class="brand-block">
+          <img class="brand-mascot" src="/assets/md-mascot.svg" alt="" />
+          <div>
+            <h1>md-editor</h1>
+            <p>墨页小鸮 · Rust + Tauri</p>
+          </div>
+        </div>
+
+        <section class="panel-section">
+          <p class="section-label">File</p>
+          <button id="open-file" class="primary-action" type="button">打开 Markdown</button>
+          <input id="file-picker" class="visually-hidden" type="file" accept=".md,.markdown,.mdown,.mkd,.txt,.log,.json,.xml,.html,.css,.js,.ts,.rs,.cpp,.h" />
+          <button id="save-file" class="secondary-action" type="button">保存</button>
+        </section>
+
+        <section class="panel-section file-card" aria-live="polite">
+          <p class="section-label">Current</p>
+          <strong id="current-file">未选择文件</strong>
+          <span id="save-state">Ready</span>
+        </section>
+
+        <section class="panel-section hints">
+          <p class="section-label">Shortcuts</p>
+          <kbd>Ctrl</kbd><span>+</span><kbd>O</kbd><span>打开</span>
+          <kbd>Ctrl</kbd><span>+</span><kbd>S</kbd><span>保存</span>
+        </section>
+      </aside>
+
+      <section class="editor-stage" aria-label="Markdown editor">
+        <header class="topbar">
+          <div>
+            <span class="eyebrow">WYSIWYG Markdown</span>
+            <strong id="document-title">Untitled</strong>
+          </div>
+          <div class="mode-tabs" aria-label="Editor modes">
+            <button class="mode-tab active" type="button" data-mode="typora">Typora</button>
+            <button class="mode-tab" type="button" data-mode="gfm">GFM</button>
+            <button class="mode-tab" type="button" data-mode="commonmark">CommonMark</button>
+          </div>
+        </header>
+        <iframe id="editor-frame" title="Markdown editor canvas" src="/editor.html"></iframe>
+      </section>
+    </main>
+  </body>
+</html>

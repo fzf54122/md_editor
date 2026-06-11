@@ -1,0 +1,23 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="base" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(18 11) rotate(52) scale(56 54)">
+      <stop stop-color="#31405D"/>
+      <stop offset="0.5" stop-color="#172536"/>
+      <stop offset="1" stop-color="#081116"/>
+    </radialGradient>
+    <linearGradient id="sheet" x1="17" y1="9" x2="47" y2="55" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F5FAF8"/>
+      <stop offset="1" stop-color="#AFC5C4"/>
+    </linearGradient>
+    <linearGradient id="ink" x1="20" y1="19" x2="46" y2="47" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#29304C"/>
+      <stop offset="1" stop-color="#05090F"/>
+    </linearGradient>
+  </defs>
+  <rect x="5" y="4" width="54" height="56" rx="17" fill="url(#base)"/>
+  <path d="M16 18c0-4.418 3.582-8 8-8h17l9 10v26c0 4.418-3.582 8-8 8H24c-4.418 0-8-3.582-8-8V18Z" fill="url(#sheet)"/>
+  <path d="M40 10v7c0 1.657 1.343 3 3 3h7L40 10Z" fill="#7E9EA2"/>
+  <path d="M21 38 32 19l13 18-10-4-8 11-6-6Z" fill="url(#ink)"/>
+  <path d="M27 44c8-1 15-5 20-11" stroke="#8176B2" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="45" cy="46" r="5" fill="#8E536E"/>
+</svg>

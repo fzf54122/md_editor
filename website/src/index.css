@@ -1,0 +1,95 @@
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  color-scheme: light;
+  color: #172126;
+  background: #eef3f1;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  --bg: #eef3f1;
+  --bg-soft: #f8fbfa;
+  --surface: rgba(255, 255, 255, 0.72);
+  --text: #172126;
+  --text-strong: #071116;
+  --text-secondary: #526168;
+  --text-tertiary: #7b898f;
+  --border: rgba(23, 33, 38, 0.12);
+  --card-bg: rgba(248, 251, 250, 0.78);
+  --hover-bg: rgba(255, 255, 255, 0.92);
+  --button-bg: #101a25;
+  --button-text: #f8fbfa;
+  --accent: #6d5b9a;
+  --accent-2: #557b82;
+  --accent-soft: rgba(109, 91, 154, 0.14);
+  --glow: rgba(85, 123, 130, 0.18);
+  --shadow: 0 30px 90px rgba(18, 32, 42, 0.14);
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  color: #eef5f3;
+  background: #071116;
+  --bg: #071116;
+  --bg-soft: #0d1a22;
+  --surface: rgba(17, 30, 38, 0.72);
+  --text: #eef5f3;
+  --text-strong: #ffffff;
+  --text-secondary: #b7c6c6;
+  --text-tertiary: #7f9294;
+  --border: rgba(185, 205, 205, 0.16);
+  --card-bg: rgba(15, 27, 36, 0.78);
+  --hover-bg: rgba(24, 41, 52, 0.92);
+  --button-bg: #eaf2f0;
+  --button-text: #071116;
+  --accent: #b8aed6;
+  --accent-2: #7e9ea2;
+  --accent-soft: rgba(184, 174, 214, 0.16);
+  --glow: rgba(109, 91, 154, 0.22);
+  --shadow: 0 34px 100px rgba(0, 0, 0, 0.42);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-width: 320px;
+  margin: 0;
+  color: var(--text);
+  background:
+    radial-gradient(circle at 16% 8%, var(--glow), transparent 28rem),
+    radial-gradient(circle at 86% 12%, var(--accent-soft), transparent 24rem),
+    linear-gradient(135deg, var(--bg-soft), var(--bg) 52%, color-mix(in srgb, var(--bg), var(--accent-2) 8%));
+  transition:
+    background 240ms ease,
+    color 240ms ease;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(120deg, rgba(255, 255, 255, 0.12), transparent 34%),
+    radial-gradient(circle at 50% 0, rgba(255, 255, 255, 0.2), transparent 30rem);
+  opacity: 0.72;
+}
+
+button,
+a {
+  font: inherit;
+}
+
+a {
+  color: inherit;
+}

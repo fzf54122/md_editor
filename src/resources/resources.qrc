@@ -1,6 +1,0 @@
-<RCC>
-    <qresource prefix="/editor">
-        <file>icon.svg</file>
-        <file>editor.html</file>
-    </qresource>
-</RCC>
